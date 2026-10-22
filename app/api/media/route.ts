@@ -8,10 +8,10 @@ export async function GET(req:Request){try{
  if(!r||(r.status!=='published'&&!await admin()))return new Response('未找到文件',{status:404});
  const d=JSON.parse(r.data);const range=req.headers.get('range');
  const object=await env.BUCKET!.get(d.key,range?{range:req.headers}:undefined);if(!object)return new Response('文件不存在',{status:404});
- const headers=new Headers({'Content-Type':d.mime,'Accept-Ranges':'bytes','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'});
+ const headers=new Headers({'Content-Type':d.mime,'Accept-Ranges':'bytes','Cache-Control':r.status==='published'?'public, max-age=3600':'private, no-store','X-Content-Type-Options':'nosniff'});
  if(object.range&&'offset' in object.range){const offset=object.range.offset??0;const length=object.range.length??(object.size-offset);headers.set('Content-Range',`bytes ${offset}-${offset+length-1}/${object.size}`);headers.set('Content-Length',String(length));return new Response(object.body,{status:206,headers});}
  headers.set('Content-Length',String(object.size));return new Response(object.body,{headers});
- }catch{return new Response('无法读取录像',{status:416});}}
+ }catch{return new Response('无法读取文件',{status:500});}}
 export async function POST(req:Request){try{
  const origin=req.headers.get('origin');if(origin&&origin!==new URL(req.url).origin)return json({error:'禁止跨站上传'},403);
  const u=await admin();if(!u)return json({error:'需要管理员权限'},403);

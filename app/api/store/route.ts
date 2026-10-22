@@ -9,9 +9,9 @@ export const dynamic='force-dynamic';
 const db=()=>env.DB!;
 const bucket=()=>env.BUCKET!;
 const now=()=>new Date().toISOString();
-function out(data:any,status=200){return Response.json(data,{status,headers:{'Cache-Control':'no-store'}});}
+function out(data:any,status=200,cache='no-store'){return Response.json(data,{status,headers:{'Cache-Control':cache}});}
 async function identity(){const user=await getAppUser();const admin=user?await db().prepare('SELECT id FROM admins WHERE id=?').bind(user.userId).first():null;return {user,admin:!!admin};}
-function sameOrigin(req:Request){const origin=req.headers.get('origin');if(origin&&origin!==new URL(req.url).origin)throw Error('禁止跨站写入');}
+function sameOrigin(req:Request){const origin=req.headers.get('origin');if(origin&&origin!==new URL(req.url).origin)return out({error:'禁止跨站写入'},403);return null;}
 function shape(row:any){return {...JSON.parse(row.data),id:row.id,kind:row.kind,status:row.status,createdAt:row.created_at,updatedAt:row.updated_at};}
 const short=z.string().max(300);const long=z.string().max(15000);const optional=short.optional().default('');
 const schemas:Record<string,z.ZodTypeAny>={
@@ -34,15 +34,15 @@ export async function GET(req:Request){try{
  if(action==='session'){const count=await db().prepare('SELECT count(*) n FROM admins').first<any>();return out({...who,setupAvailable:!count?.n&&!!env.ADMIN_SETUP_TOKEN});}
  if(action==='assistant')return out({enabled:false,message:'定制战术分析助手尚未启用。请先维护对手观察资料。'});
  if(action==='imports'){if(!who.admin)return out({error:'需要管理员权限'},403);const r=await db().prepare('SELECT * FROM imports ORDER BY created_at DESC').all();return out(r.results.map((r:any)=>({...r,data:JSON.parse(r.data)})));}
- if(action==='ratings'){const pid=url.searchParams.get('playerId');if(!pid)return out({error:'缺少球员'},400);const rows=await db().prepare('SELECT dims FROM ratings WHERE player_id=?').bind(pid).all<any>();return out(aggregateRatings(rows.results.map((r:any)=>({dims:JSON.parse(r.dims)}))));}
- if(action==='advice'){const pid=url.searchParams.get('playerId');if(!pid)return out({error:'缺少球员'},400);const r=await db().prepare("SELECT data FROM records WHERE id=?").bind('advice:'+pid).first<any>();const d=r?JSON.parse(r.data):null;return out({advice:d?.advice||null});}
+ if(action==='ratings'){const pid=url.searchParams.get('playerId');if(!pid)return out({error:'缺少球员'},400);const rows=await db().prepare('SELECT dims FROM ratings WHERE player_id=?').bind(pid).all<any>();return out(aggregateRatings(rows.results.map((r:any)=>({dims:JSON.parse(r.dims)}))),200,'public, max-age=30');}
+ if(action==='advice'){const pid=url.searchParams.get('playerId');if(!pid)return out({error:'缺少球员'},400);const r=await db().prepare("SELECT data FROM records WHERE id=?").bind('advice:'+pid).first<any>();const d=r?JSON.parse(r.data):null;return out({advice:d?.advice||null},200,'public, max-age=30');}
  const adminView=url.searchParams.get('admin')==='1';if(adminView&&!who.admin)return out({error:'需要管理员权限'},403);
  const data=await db().prepare(adminView?"SELECT * FROM records WHERE kind != 'advice' ORDER BY created_at DESC":"SELECT * FROM records WHERE status='published' AND kind != 'advice' ORDER BY created_at DESC").all();
  const rows=data.results.map(shape).map((r:any)=>{if(!adminView&&r.kind==='game'){const {official,rawRows,mapping,importId,resolution,...safe}=r;return {...safe,official,players:r.players?.map(({raw,...p}:any)=>p)};}return r;});
- return out(rows);
+ return out(rows,200,'public, max-age=60, stale-while-revalidate=300');
  }catch(e){return out({error:'读取失败：'+(e as Error).message},500);}}
 export async function POST(req:Request){try{
- sameOrigin(req);const who=await identity();
+ const o=sameOrigin(req);if(o)return o;const who=await identity();
  if(Number(req.headers.get('content-length')||0)>4*1024*1024)return out({error:'请求过大'},413);
  const b:any=await req.json();
  if(b.action==='setup'){
@@ -134,4 +134,4 @@ export async function POST(req:Request){try{
   await db().batch([db().prepare('DELETE FROM records WHERE id=?').bind(imp.game_id),db().prepare("UPDATE imports SET state='undone' WHERE id=?").bind(b.id)]);return out({ok:true});
  }
  return out({error:'未知操作'},400);
- }catch(e){return out({error:e instanceof z.ZodError?'字段校验失败：'+e.issues.map(i=>i.path.join('.')+' '+i.message).join('；'):(e as Error).message},400);}}
+ }catch(e){if(e instanceof z.ZodError)return out({error:'字段校验失败：'+e.issues.map(i=>i.path.join('.')+' '+i.message).join('；')},400);return out({error:(e as Error).message||'服务器错误'},500);}}
