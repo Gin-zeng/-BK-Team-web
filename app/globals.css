@@ -19,6 +19,8 @@
   --input-border: #dedfd5;
   --focus-ring: #d79565;
   --shadow: 0 8px 24px rgba(30, 40, 32, 0.1);
+  --neu: none;
+  --neu-inset: none;
   /* 品牌 / 状态 */
   --brand-icon-fg: #f3e6c5;
   --status-green: #718b5c;
@@ -246,6 +248,130 @@
   --template-bg: #222a20;
   --template-button-bg: #2a322a;
 }
+
+[data-theme="blue"] {
+  color-scheme: light;
+  --bg: #e3e9f2;
+  --paper: #e3e9f2;
+  --ink: #33415c;
+  --muted: #6c7a92;
+  --muted-faint: #9aa7bd;
+  --muted-strong: #2a3850;
+  --line: #d5dce8;
+  --accent: #4a6cf7;
+  --green: #3b5bdb;
+  --sidebar: #e8edf5;
+  --topbar: #e3e9f2;
+  --hover: #dbe3ef;
+  --input-border: #d5dce8;
+  --focus-ring: #4a6cf7;
+  --shadow: 10px 10px 20px rgba(163, 177, 198, 0.6), -10px -10px 20px rgba(255, 255, 255, 0.85);
+  --neu: 8px 8px 16px rgba(163, 177, 198, 0.55), -8px -8px 16px rgba(255, 255, 255, 0.9);
+  --neu-inset: inset 5px 5px 10px rgba(163, 177, 198, 0.5), inset -5px -5px 10px rgba(255, 255, 255, 0.9);
+  --brand-icon-fg: #ffffff;
+  --status-green: #4a6cf7;
+  --primary-fg: #ffffff;
+  --green-hover: #2f4ec9;
+  --nav-fg: #5a6b85;
+  --nav-hover: #dbe3ef;
+  --nav-active-bg: #cdd8ec;
+  --nav-active-fg: #2f4ec9;
+  --nav-chip-bg: #cdd8ec;
+  --sideline-bg: #dbe3ef;
+  --line-art: #b6c3d8;
+  --avatar-bg: #dbe3ef;
+  --hero-bg: #dbe3ef;
+  --hero-border: #cdd8ec;
+  --hero-copy-bg: #e3e9f2;
+  --hero-court-bg: #d6e0ef;
+  --hero-heading: #2a3850;
+  --hero-cta-bg: #3b5bdb;
+  --hero-cta-fg: #ffffff;
+  --hero-cta-hover: #2f4ec9;
+  --hero-meta: #3b5bdb;
+  --hero-watermark: #cdd8ec;
+  --pill-border: #b6c3d8;
+  --pill-fg: #4a6cf7;
+  --court-bg: #e3e9f2;
+  --court-border: #cdd8ec;
+  --court-top-fg: #6c7a92;
+  --progress-bg: #cdd8ec;
+  --court-wood: #cfd9ea;
+  --court-wood-seam: #b6c3d8;
+  --court-wood-hi: #e8edf5;
+  --court-arrow: #4a6cf7;
+  --court-line: #f4f7fb;
+  --court-mark: #7a8aa5;
+  --court-attack-path: #4a6cf7;
+  --court-defense-path: #6c9bd8;
+  --court-pass: #f4f7fb;
+  --court-ring: #b6c3d8;
+  --court-selected-ring: #ffffff;
+  --court-screen: #3b5bdb;
+  --court-ball: #f0a35c;
+  --court-ball-seam: #7a5a3a;
+  --attack: #4a6cf7;
+  --defense: #6c9bd8;
+  --overview-icon-bg: #dbe3ef;
+  --overview-icon-border: #cdd8ec;
+  --overview-icon-fg: #4a6cf7;
+  --tactic-visual-fg: #6c7a92;
+  --tactic-chip-bg: rgba(227, 233, 242, 0.85);
+  --tactic-chip-border: #cdd8ec;
+  --tactic-play-bg: rgba(255, 255, 255, 0.75);
+  --palette1-bg: #dbe3ef;
+  --palette1-fg: #6c7a92;
+  --palette2-bg: #d6e0ef;
+  --palette2-fg: #4a6cf7;
+  --empty-bg: #dbe3ef;
+  --empty-border: #b6c3d8;
+  --empty-icon: #7a8aa5;
+  --empty-heading: #3a4a6b;
+  --coaching-bg: #dbe3ef;
+  --panel-tint: #dbe3ef;
+  --panel-tint-border: #cdd8ec;
+  --banner-bg: #dbe3ef;
+  --banner-border: #cdd8ec;
+  --chip-active-bg: #cdd8ec;
+  --chip-active-fg: #2f4ec9;
+  --chip-active-border: #b6c3d8;
+  --search-bg: #e3e9f2;
+  --badge-bg: #dbe3ef;
+  --badge-fg: #4a6cf7;
+  --badge-green-bg: #cdd8ec;
+  --badge-green-fg: #2f4ec9;
+  --step-tab-bg: #dbe3ef;
+  --step-tab-active-bg: #cdd8ec;
+  --step-tab-active-fg: #2f4ec9;
+  --role-bg: #dbe3ef;
+  --role-fg: #6c7a92;
+  --role-strong: #33415c;
+  --metric-strong: #33415c;
+  --th-bg: #dbe3ef;
+  --td-border: #e8edf5;
+  --dist-bg: #dbe3ef;
+  --dist-fill: #4a6cf7;
+  --bar: #4a6cf7;
+  --jersey-fg: #7a8aa5;
+  --player-card-bg: #e3e9f2;
+  --video-bg: #1c2330;
+  --danger-fg: #d64545;
+  --alert-bg: #e8edf5;
+  --alert-border: #cdd8ec;
+  --alert-fg: #4a5a75;
+  --success-fg: #3b8c5a;
+  --upload-border: #b6c3d8;
+  --upload-bg: #dbe3ef;
+  --upload-fg: #6c7a92;
+  --template-bg: #dbe3ef;
+  --template-button-bg: #e3e9f2;
+}
+
+/* ============ 新拟物表面（仅 blue 主题有阴影，暖色为 none） ============ */
+.panel, .overview-card, .tactic-card, .player-card, .metric, .lineup-card, .album-card, .schedule-card, .event-card, .sideline-card { box-shadow: var(--neu); }
+input, select, textarea { box-shadow: var(--neu-inset); }
+button { box-shadow: var(--neu); }
+button:active { box-shadow: var(--neu-inset); }
 
 /* ============ 基础 ============ */
 * { box-sizing: border-box; }

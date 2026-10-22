@@ -2,7 +2,9 @@
 import { useCallback, useEffect, useState } from 'react';
 
 const STORAGE_KEY = 'mech-hoops-theme';
-export type Theme = 'light' | 'dark';
+export type Theme = 'light' | 'dark' | 'blue';
+
+const THEME_ORDER: Theme[] = ['light', 'dark', 'blue'];
 
 function systemTheme(): Theme {
   return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -17,7 +19,7 @@ export function useTheme() {
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    const initial: Theme = stored === 'dark' || stored === 'light' ? stored : systemTheme();
+    const initial: Theme = THEME_ORDER.includes(stored as Theme) ? (stored as Theme) : systemTheme();
     setTheme(initial);
     apply(initial);
 
@@ -36,7 +38,7 @@ export function useTheme() {
 
   const toggle = useCallback(() => {
     setTheme((prev) => {
-      const next: Theme = prev === 'dark' ? 'light' : 'dark';
+      const next = THEME_ORDER[(THEME_ORDER.indexOf(prev) + 1) % THEME_ORDER.length];
       localStorage.setItem(STORAGE_KEY, next);
       apply(next);
       return next;
