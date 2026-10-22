@@ -30,7 +30,7 @@
 | 💬 Reviews & Messages | Match reviews and player message board (visitor, name required) |
 | 🌙 Themes | Three themes: warm light / warm dark / blue-white neumorphism |
 | 🔐 Admin Console | Content management, data import, draft / publish, batch undo |
-| ✉️ Auth | Email verification-code login + legacy ChatGPT admin identity |
+| ✉️ Auth | Email verification-code login; super admin (first email) + regular admins (application/approval) |
 
 ## 🖼 Screenshots
 
@@ -112,7 +112,7 @@ This repository contains **code only** — no secrets, credentials or production
 So **anyone who clones this repo only gets the code** and cannot modify the content at `www.jxlq.top`:
 
 - deploying requires the author's Cloudflare account credentials;
-- admin access is gated by email login (only the first verified email becomes admin; later accounts are read-only);
+- admin access is gated by email login (the first verified email becomes super admin; later accounts can apply to become regular admins, approved by the super admin);
 - to run your own instance, configure your own Cloudflare account and secrets (see the [deployment guide](docs/部署手册.md)).
 
 ## 📄 License

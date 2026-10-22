@@ -7,6 +7,13 @@
 
 ## 2026-10-23
 
+### 🔐 管理员两级权限 · Two-tier Admin Roles
+
+- 新增超级管理员（首个邮箱验证用户）与普通管理员两级权限；普通管理员申请、超管审批通过后获得数据/上传权限，仅超管能审批。
+  *Two-tier admin roles: super admin (first verified email) and regular admins (application approved by the super admin); both manage data/upload, only the super admin approves applications.*
+- 删除 ChatGPT 身份登录（chatgpt-auth），仅保留邮箱验证码登录。
+  *Removed the ChatGPT identity login; only email verification-code login remains.*
+
 ### 🎨 观感动效打磨与截图更新 · Polish & Screenshots
 
 - 多端触控目标优化（移动端评分按钮放大）、卡片悬停浮起与阴影、图标悬停缩放、统一缓动曲线，不改任何功能与位置。
