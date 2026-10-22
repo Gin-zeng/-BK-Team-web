@@ -1,4 +1,4 @@
-# 🏀 机械学院 · 篮球战术室
+# 🏀 DHU 机械学院篮球空间
 
 > 联网的篮球战术教学与赛后数据分析平台 —— 把每一次配合，练成球队的默契。
 > An online basketball tactics teaching & post-game analytics platform.
@@ -96,6 +96,19 @@ npm run deploy:cf           # 构建 + 守卫检查 + wrangler deploy
 
 本项目使用 **MIT License** 开源，欢迎提 Issue 与 Pull Request。开始前请先阅读 [产品方案](docs/产品方案.md) 了解架构约定。
 
+## 🔒 安全说明
+
+本仓库**只包含代码**，不包含任何密钥、凭证或生产数据：
+
+- `.dev.vars`、`.env*`、`old-data.json`、`restore.sql`、`backup-*.sql` 均已被 `.gitignore` 忽略；
+- 生产站 `www.jxlq.top` 的数据（D1）与媒体（R2），以及部署凭证（Cloudflare、DeepSeek、管理员口令）都不在仓库中。
+
+因此，**任何克隆本仓库的人都只能拿到代码**，无法修改 `www.jxlq.top` 的网站内容：
+
+- 部署需要作者 Cloudflare 账号的凭证；
+- 后台管理员由邮箱登录控制（仅首个验证邮箱为管理员，后续账号只读）；
+- 要运行你自己的实例，请配置你自己的 Cloudflare 账号与密钥（见 [部署手册](docs/部署手册.md)）。
+
 ## 📄 License
 
-[MIT](./LICENSE) © 2026 机械学院 · 篮球战术室
+[MIT](./LICENSE) © 2026 DHU 机械学院篮球空间

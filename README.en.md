@@ -1,4 +1,4 @@
-# 🏀 Mech Hoops — Basketball Tactics Room
+# 🏀 DHU Mech Hoops — Basketball Space
 
 > An online basketball tactics teaching & post-game analytics platform. Turn every play into team chemistry.
 
@@ -95,6 +95,19 @@ See the [Changelog](CHANGELOG.md) for details.
 
 This project is open source under the **MIT License**. Issues and pull requests are welcome — please read the [product plan](docs/产品方案.md) first to understand the architecture conventions.
 
+## 🔒 Security
+
+This repository contains **code only** — no secrets, credentials or production data:
+
+- `.dev.vars`, `.env*`, `old-data.json`, `restore.sql` and `backup-*.sql` are all git-ignored;
+- the production site's data (D1), media (R2) and deployment credentials (Cloudflare, DeepSeek, admin token) are not in this repo.
+
+So **anyone who clones this repo only gets the code** and cannot modify the content at `www.jxlq.top`:
+
+- deploying requires the author's Cloudflare account credentials;
+- admin access is gated by email login (only the first verified email becomes admin; later accounts are read-only);
+- to run your own instance, configure your own Cloudflare account and secrets (see the [deployment guide](docs/部署手册.md)).
+
 ## 📄 License
 
-[MIT](./LICENSE) © 2026 Mech Hoops
+[MIT](./LICENSE) © 2026 DHU Mech Hoops
