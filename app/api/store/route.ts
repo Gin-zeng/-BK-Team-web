@@ -42,7 +42,7 @@ export async function GET(req:Request){try{
  const adminView=url.searchParams.get('admin')==='1';if(adminView&&!who.admin)return out({error:'需要管理员权限'},403);
  const data=await db().prepare(adminView?"SELECT * FROM records WHERE kind != 'advice' AND kind != 'review' AND kind != 'message' ORDER BY created_at DESC":"SELECT * FROM records WHERE status='published' AND kind != 'advice' AND kind != 'review' AND kind != 'message' ORDER BY created_at DESC").all();
  const rows=data.results.map(shape).map((r:any)=>{if(!adminView&&r.kind==='game'){const {official,rawRows,mapping,importId,resolution,...safe}=r;return {...safe,official,players:r.players?.map(({raw,...p}:any)=>p)};}return r;});
- return out(rows,200,'public, max-age=60, stale-while-revalidate=300');
+ return out(rows,200,adminView?'no-store':'public, max-age=60, stale-while-revalidate=300');
  }catch(e){return out({error:'读取失败：'+(e as Error).message},500);}}
 export async function POST(req:Request){try{
  const o=sameOrigin(req);if(o)return o;const who=await identity();
