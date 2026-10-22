@@ -12,6 +12,7 @@ export async function askDeepSeek(
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + key },
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(20000),
   });
   if (!res.ok) throw new Error('AI 服务暂不可用（' + res.status + '）');
   const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };

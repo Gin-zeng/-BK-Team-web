@@ -50,7 +50,7 @@ export async function GET(req:Request){try{
   const date=new Date().toISOString().slice(0,10);
   const rec=await db().prepare("SELECT data FROM records WHERE id='recommendation:today'").first<any>();
   const cached=rec?JSON.parse(rec.data):null;
-  if(cached&&cached.date===date&&cached.focus===focus&&cached.items?.length)return out({focus,items:cached.items},200,'public, max-age=60');
+  if(cached&&cached.date===date&&cached.focus===focus){if(cached.items?.length)return out({focus,items:cached.items},200,'public, max-age=60');if(cached.failedAt&&Date.now()-cached.failedAt<30*60*1000)return out({focus,items:[]},200,'public, max-age=60');}
   try{
    if(!env.DEEPSEEK_API_KEY)throw Error('未配置 AI 密钥');
    if(await rateLimited('recommend:'+clientIp(req),5))return out({focus,items:[]},200,'public, max-age=60');
@@ -61,7 +61,7 @@ export async function GET(req:Request){try{
    const data={date,focus,items};
    await db().prepare("INSERT INTO records(id,kind,status,data,created_at,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data,updated_at=excluded.updated_at").bind('recommendation:today','recommendation','published',JSON.stringify(data),now(),now()).run();
    return out({focus,items},200,'public, max-age=60');
-  }catch(e){return out({focus,items:[]},200,'public, max-age=60');}
+  }catch(e){await db().prepare("INSERT INTO records(id,kind,status,data,created_at,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data,updated_at=excluded.updated_at").bind('recommendation:today','recommendation','published',JSON.stringify({date,focus,items:[],failedAt:Date.now()}),now(),now()).run();return out({focus,items:[]},200,'public, max-age=60');}
  }
  const adminView=url.searchParams.get('admin')==='1';if(adminView&&!who.admin)return out({error:'需要管理员权限'},403);
  const data=await db().prepare(adminView?"SELECT * FROM records WHERE kind != 'advice' AND kind != 'review' AND kind != 'message' AND kind != 'application' AND kind != 'recommendation' ORDER BY created_at DESC":"SELECT * FROM records WHERE status='published' AND kind != 'advice' AND kind != 'review' AND kind != 'message' AND kind != 'application' AND kind != 'recommendation' ORDER BY created_at DESC").all();
