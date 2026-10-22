@@ -602,6 +602,24 @@ button.text-button { font-size: inherit; }
 .lineup-chip small { margin-left: 6px; color: var(--muted); }
 .video-embed { width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 8px; background: var(--video-bg); margin-bottom: 18px; }
 
+/* ============ 赛程/训练 ============ */
+.event-list { display: flex; flex-direction: column; gap: 14px; }
+.event-card { margin-bottom: 0; }
+.event-card h3 { font-size: 16px; margin: 10px 0 8px; }
+.event-meta { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 12px; color: var(--muted); }
+.event-meta span { display: inline-flex; align-items: center; gap: 5px; }
+.event-note { font-size: 12px; color: var(--muted); margin-top: 10px; white-space: pre-wrap; }
+
+/* ============ 首页近期赛程 ============ */
+.schedule-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.schedule-card { border: 1px solid var(--line); border-radius: 12px; padding: 20px; background: var(--paper); }
+.schedule-vs { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 14px; }
+.schedule-home, .schedule-away { font-size: 20px; font-weight: 750; letter-spacing: 1px; }
+.schedule-vs-mark { font-size: 12px; font-weight: 800; color: var(--accent); background: var(--coaching-bg); padding: 6px 14px; border-radius: 20px; letter-spacing: 1px; }
+.schedule-info { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 12px; color: var(--muted); justify-content: center; }
+.schedule-info span { display: inline-flex; align-items: center; gap: 5px; }
+@media (max-width: 760px) { .schedule-cards { grid-template-columns: 1fr; } }
+
 /* ============ 响应式 ============ */
 @media (min-width: 1500px) {
   main { padding-left: 55px; padding-right: 55px; }
