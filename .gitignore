@@ -47,3 +47,4 @@ restore.sql
 
 # OS metadata
 .DS_Store
+backup-*.sql
