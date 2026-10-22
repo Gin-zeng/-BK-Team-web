@@ -7,6 +7,15 @@
 
 ## 2026-10-23
 
+### ⚡ 性能优化与代码质量 · Performance & Code Quality
+
+- **性能**：图片懒加载、`Admin`/`PlayerAnalysis` 组件按需加载（代码分割）、公开接口加缓存头（store 60s / ratings·advice 30s / media 1h）。
+  *Performance: image lazy-loading, on-demand `Admin`/`PlayerAnalysis` (code splitting), public API cache headers (store 60s / ratings·advice 30s / media 1h).*
+- **错误处理**：修正媒体接口错误状态码、区分校验错误(400)与服务器错误(500)、跨站写入返回 403。
+  *Error handling: fixed media status codes, split validation (400) vs server (500) errors, cross-origin writes return 403.*
+- **重构与清理**：`page.tsx` 辅助组件抽取到 `view-components.tsx`；删除未引用的 connector 死代码。
+  *Refactor & cleanup: extracted `page.tsx` helpers into `view-components.tsx`; removed unused connector dead code.*
+
 ### 🏀 首发/替补阵容与 B站视频 · Lineup & Bilibili Videos
 
 - **首发/替补阵容**：球队可安排下一场首发 5 人、比赛记录该场首发；阵容页展示首发（横向滚动动画）、替补席与上一场首发。
