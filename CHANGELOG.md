@@ -7,6 +7,15 @@
 
 ## 2026-10-23
 
+### 🏀 首发/替补阵容与 B站视频 · Lineup & Bilibili Videos
+
+- **首发/替补阵容**：球队可安排下一场首发 5 人、比赛记录该场首发；阵容页展示首发（横向滚动动画）、替补席与上一场首发。
+  *Starting lineup & bench: arrange the next game's starting five, record each game's lineup; the roster page shows starters (marquee animation), the bench and the last game's lineup.*
+- **球员籍贯**：档案新增籍贯字段；并加入篮球图标、背景水印等 UI 篮球元素。
+  *Added a hometown field to player profiles, plus basketball-themed UI elements (icon, background watermark).*
+- **B站视频播放**：录像中心改用 B站 iframe 播放（粘贴 BV 号 / 链接），不再上传视频到 R2，节省云端存储。
+  *Video center now embeds Bilibili streams (paste a BV id / link) instead of uploading to R2, saving cloud storage.*
+
 ### ✨ 球员六维分析与 AI 打法建议 · Player Analysis & AI Advice
 
 - **六维能力评分**：得分 / 投射 / 篮板 / 组织 / 防守 / 体能，访客匿名打分（1–5），取平均生成手绘 SVG 六方图（雷达图）。

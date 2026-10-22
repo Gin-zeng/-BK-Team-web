@@ -20,11 +20,11 @@
 | 📊 Team Overview | Team info, badge, theme color and season summary |
 | 📋 2D Tactics | 11 animated plays (motion, pick-and-roll, off-ball screen, horns, fast break, zone defense…), playable / pausable / slow-mo / step-through / zoomable |
 | 📈 Game Analysis | Excel / CSV import & validation, shooting percentages, trend charts, per-game review |
-| 👥 Roster | Player profiles: avatar, height, weight, position, handedness |
+| 👥 Roster | Player profiles (avatar, height, weight, position, hometown, handedness) + starting lineup & bench (next-game lineup, last-game lineup) |
 | ⭐ 6-Dimension Ratings | Anonymous visitor scoring (scoring / shooting / rebounding / playmaking / defense / athleticism) averaged into a radar chart |
 | 🤖 AI Advice | DeepSeek generates four-section advice (role / offense / defense / training focus) from data + ratings + position |
 | 🎯 Opponent Profiles | Manual scouting notes + preparation advice |
-| 🎬 Video Center | R2 chunked upload, Range playback, speed control / seeking |
+| 🎬 Video Center | Bilibili streaming playback (paste a BV id / link), no cloud storage cost |
 | 🖼 Team Album | Album grouping, covers, photo lightbox |
 | 🌙 Dark Mode | Light / dark theme toggle, follows system, persisted locally |
 | 🔐 Admin Console | Content management, data import, draft / publish, batch undo |
@@ -85,7 +85,7 @@ See the [deployment guide](docs/部署手册.md) for full steps, secrets and tro
 ## 🗺 Roadmap
 
 - ✅ **Phase 1**: public browsing, admin auth, import validation, 2D tactics, opponent profiles, video & image upload
-- ✅ **Phase 2**: dark mode, team album, 6-dimension player analysis & AI advice
+- ✅ **Phase 2**: dark mode, team album, 6-dimension player analysis & AI advice, starting lineup & bench, Bilibili video, hometown
 - ⏳ **Planned**: video clip annotation, tactics–video linking, free-form play drawing, custom analysis assistant
 - 💭 **Future**: auto event detection & tracking validated on real samples, optional 3D teaching
 
