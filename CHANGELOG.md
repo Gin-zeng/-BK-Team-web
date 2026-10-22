@@ -7,6 +7,11 @@
 
 ## 2026-10-23
 
+### 🛡 稳定性优化 · Stability
+
+- DeepSeek 调用加 20 秒超时，避免请求挂起；每日推荐生成失败时写冷却标记，30 分钟内不重试，降低重复调用与成本。
+  *DeepSeek calls now have a 20s timeout; failed daily-recommendation generation is cooled down for 30 minutes to avoid repeat calls and cost.*
+
 ### 🤖 AI 每日推荐 · AI Daily Recommendation
 
 - 新增「训练方向」设置，DeepSeek 从战术学习视频库每日精选 3-5 个视频 + 推荐理由，展示在录像中心「战术学习」标签页；当天缓存、改方向自动重新生成。
