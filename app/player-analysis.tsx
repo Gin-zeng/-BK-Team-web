@@ -79,6 +79,7 @@ export function PlayerAnalysis({ playerId }: { playerId: string }) {
           </div>
         </div>
       </section>
+      <PlayerMessages playerId={playerId}/>
       <section className="panel advice-card">
         <div className="section-heading"><h3>打法建议</h3>{advice && <button className="text-button" onClick={generate}>重新生成</button>}</div>
         {advice
@@ -91,5 +92,46 @@ export function PlayerAnalysis({ playerId }: { playerId: string }) {
               </>}
       </section>
     </>
+  );
+}
+
+export function PlayerMessages({ playerId }: { playerId: string }) {
+  const [messages, setMessages] = useState<any[]>([]);
+  const [name, setName] = useState('');
+  const [content, setContent] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState('');
+
+  useEffect(() => {
+    (async () => {
+      try { const r = await fetch('/api/store?action=messages&playerId=' + encodeURIComponent(playerId)); const d: any = await r.json(); if (r.ok) setMessages(d); } catch {}
+    })();
+  }, [playerId]);
+
+  async function submit() {
+    setBusy(true); setMsg('');
+    try {
+      const r = await fetch('/api/store', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'message', playerId, name, content }) });
+      const d: any = await r.json();
+      if (!r.ok) throw new Error(d.error || '提交失败');
+      setMessages([{ name: name.trim(), content: content.trim(), createdAt: new Date().toISOString() }, ...messages]);
+      setName(''); setContent('');
+    } catch (e) { setMsg((e as Error).message); }
+    finally { setBusy(false); }
+  }
+
+  return (
+    <section className="panel">
+      <div className="section-heading"><h3>队员有话</h3><span className="muted">{messages.length} 条</span></div>
+      <div className="review-form">
+        <label>填写人姓名<input value={name} onChange={e => setName(e.target.value)} placeholder="必填" maxLength={300} /></label>
+        <label>留言内容<textarea value={content} onChange={e => setContent(e.target.value)} placeholder="给这位队员说句话吧…" rows={3} maxLength={15000} /></label>
+        <button className="primary" disabled={busy || !name.trim() || !content.trim()} onClick={submit}>{busy ? '提交中…' : '提交留言'}</button>
+        {msg && <div className="alert">{msg}</div>}
+      </div>
+      {messages.length
+        ? <div className="review-list">{messages.map((m, i) => <div className="review-item" key={i}><div className="review-head"><strong>{m.name}</strong><span className="muted">{m.createdAt?.slice(0, 10)}</span></div><p>{m.content}</p></div>)}</div>
+        : <p className="muted">还没有留言，来写第一条吧。</p>}
+    </section>
   );
 }
