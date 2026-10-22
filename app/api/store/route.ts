@@ -4,6 +4,7 @@ import { analyzeRows, keys, aggregate } from '../../../lib/stats';
 import { tactics } from '../../../lib/tactics';
 import { aggregateRatings, buildAdvicePrompt, DIM_KEYS, RATING_MIN, RATING_MAX } from '../../../lib/player-analysis';
 import { askDeepSeek } from '../../../lib/deepseek';
+import { extractBvid } from '../../../lib/bilibili';
 import { z } from 'zod';
 export const dynamic='force-dynamic';
 const db=()=>env.DB!;
@@ -56,7 +57,7 @@ export async function GET(req:Request){try{
    const list=pool.map((v:any)=>`- id:${v.id} | ${v.title}${v.description?' | '+String(v.description).slice(0,80):''}`).join('\n');
    const raw=await askDeepSeek(env,[{role:'system',content:'你是篮球训练助手。根据训练方向，从给定的学习视频列表里选出 3-5 个最相关的视频，返回 JSON：{"items":[{"id":"视频id","reason":"一句话推荐理由"}]}。只返回 JSON，不要其他内容。'},{role:'user',content:`训练方向：${focus}\n\n学习视频列表：\n${list}`}],true);
    const parsed=JSON.parse(raw.replace(/```(?:json)?/g,'').trim());
-   const items=(Array.isArray(parsed?.items)?parsed.items:[]).filter((it:any)=>it&&typeof it.id==='string'&&pool.some((v:any)=>v.id===it.id)).slice(0,5).map((it:any)=>{const v=pool.find((p:any)=>p.id===it.id);return {id:v.id,title:v.title,bilibiliId:v.bilibiliId,reason:String(it.reason||'').slice(0,200)};});
+   const items=(Array.isArray(parsed?.items)?parsed.items:[]).filter((it:any)=>it&&typeof it.id==='string'&&pool.some((v:any)=>v.id===it.id)).slice(0,5).map((it:any)=>{const v=pool.find((p:any)=>p.id===it.id);return {title:v.title,bvid:extractBvid(v.bilibiliId),reason:String(it.reason||'').slice(0,200)};});
    const data={date,focus,items};
    await db().prepare("INSERT INTO records(id,kind,status,data,created_at,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data,updated_at=excluded.updated_at").bind('recommendation:today','recommendation','published',JSON.stringify(data),now(),now()).run();
    return out({focus,items},200,'public, max-age=60');
