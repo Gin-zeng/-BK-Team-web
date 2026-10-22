@@ -6,5 +6,6 @@ declare namespace Cloudflare {
     RESEND_API_KEY?: string;
     EMAIL_FROM?: string;
     EMAIL_AUTH_SECRET?: string;
+    DEEPSEEK_API_KEY?: string;
   }
 }

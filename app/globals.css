@@ -477,7 +477,7 @@ table select { max-width: 240px; font-size: 11px; }
 
 /* ============ 球员 / 对手 ============ */
 .player-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-.player-card { text-align: left; display: flex; align-items: flex-start; flex-direction: column; padding: 24px; background: var(--player-card-bg); transition: transform 0.2s, box-shadow 0.2s; }
+.player-card { position: relative; text-align: left; display: flex; align-items: flex-start; flex-direction: column; padding: 24px; background: var(--player-card-bg); transition: transform 0.2s, box-shadow 0.2s; }
 .player-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
 .jersey-number { font-size: 66px; font-family: Impact, "Arial Narrow", sans-serif; font-weight: 900; color: var(--jersey-fg); line-height: 1.2; }
 .player-card h3 { margin: 15px 0 3px; font-size: 19px; }
@@ -561,6 +561,29 @@ progress { width: 100%; accent-color: var(--accent); height: 10px; }
 .mobile-overlay { display: none; }
 details summary { font-size: 12px; color: var(--muted); cursor: pointer; }
 button.text-button { font-size: inherit; }
+
+/* ============ 球员画像（头像 / 六维 / 建议） ============ */
+.player-avatar { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; background: var(--coaching-bg); border: 1px solid var(--line); color: var(--muted); }
+.player-avatar.empty { display: inline-flex; align-items: center; justify-content: center; }
+.player-card .player-avatar { position: absolute; top: 16px; right: 16px; width: 52px; height: 52px; }
+.player-avatar.lg { width: 92px; height: 92px; flex-shrink: 0; }
+.player-info { font-size: 11px; color: var(--muted); margin-top: 8px; }
+.analysis-grid { display: grid; grid-template-columns: minmax(260px, 300px) 1fr; gap: 26px; align-items: start; }
+.radar { width: 100%; height: auto; max-width: 300px; }
+.radar-ring { fill: none; stroke: var(--line); }
+.radar-axis { stroke: var(--line); }
+.radar-fill { fill: var(--accent); opacity: 0.28; stroke: var(--accent); stroke-width: 1.5; }
+.radar-dot { fill: var(--accent); }
+.radar-label { font-size: 11px; fill: var(--muted); }
+.rating-form { display: flex; flex-direction: column; gap: 13px; }
+.rating-row { display: flex; align-items: center; gap: 12px; flex-direction: row; }
+.rating-row > span { min-width: 40px; font-size: 13px; }
+.rating-options { display: flex; gap: 6px; }
+.rating-options button { width: 34px; height: 34px; padding: 0; border-radius: 50%; font-size: 13px; border: 1px solid var(--line); background: var(--paper); }
+.rating-options button:hover { background: var(--hover); }
+.rating-options button.selected { background: var(--green); border-color: var(--green); color: #fff; }
+.advice-card .prose { line-height: 2; }
+@media (max-width: 760px) { .analysis-grid { grid-template-columns: 1fr; } .rating-options button { width: 30px; height: 30px; } }
 
 /* ============ 响应式 ============ */
 @media (min-width: 1500px) {

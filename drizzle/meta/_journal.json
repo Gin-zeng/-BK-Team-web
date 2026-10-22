@@ -15,6 +15,13 @@
       "when": 1792654595003,
       "tag": "0001_outgoing_micromacro",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792687501388,
+      "tag": "0002_boring_the_stranger",
+      "breakpoints": true
     }
   ]
 }

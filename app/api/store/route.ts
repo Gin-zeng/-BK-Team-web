@@ -1,7 +1,9 @@
 import { env } from 'cloudflare:workers';
 import { getAppUser } from '../../auth';
-import { analyzeRows, keys } from '../../../lib/stats';
+import { analyzeRows, keys, aggregate } from '../../../lib/stats';
 import { tactics } from '../../../lib/tactics';
+import { aggregateRatings, buildAdvicePrompt, DIM_KEYS, RATING_MIN, RATING_MAX } from '../../../lib/player-analysis';
+import { askDeepSeek } from '../../../lib/deepseek';
 import { z } from 'zod';
 export const dynamic='force-dynamic';
 const db=()=>env.DB!;
@@ -13,7 +15,7 @@ function sameOrigin(req:Request){const origin=req.headers.get('origin');if(origi
 function shape(row:any){return {...JSON.parse(row.data),id:row.id,kind:row.kind,status:row.status,createdAt:row.created_at,updatedAt:row.updated_at};}
 const short=z.string().max(300);const long=z.string().max(15000);const optional=short.optional().default('');
 const schemas:Record<string,z.ZodTypeAny>={
- player:z.object({name:short.min(1),number:optional,position:optional,bio:long.optional().default('')}),
+ player:z.object({name:short.min(1),number:optional,position:optional,bio:long.optional().default(''),avatarId:optional,height:optional,weight:optional,birth:optional,hand:optional}),
  opponent:z.object({name:short.min(1),team:short.min(1),number:optional,position:optional,height:optional,hand:optional,shooting:optional,driving:optional,passing:optional,rebounding:optional,defense:optional,strengths:long,weaknesses:long,advice:long,source:short.min(1),date:short.min(1),certainty:z.enum(['观察判断','未经确认','客观资料']),gameId:optional,videoId:optional}),
  game:z.object({title:short.min(1),date:short.min(1),season:short.min(1),opponent:short.min(1),score:z.number().int().min(0).nullable(),opponentScore:z.number().int().min(0).nullable(),review:long.optional().default(''),quarterMinutes:z.number().int().min(1).max(30).default(10)}),
  tactic:z.object({title:short.min(1),baseId:z.string().refine(v=>tactics.some(t=>t.id===v)),description:long,bindings:z.record(z.string(),short).default({})}),
@@ -25,13 +27,17 @@ const schemas:Record<string,z.ZodTypeAny>={
 function stmtSave(id:string,kind:string,status:string,data:any,created=now()){return db().prepare('INSERT INTO records(id,kind,status,data,created_at,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET status=excluded.status,data=excluded.data,updated_at=excluded.updated_at').bind(id,kind,status,JSON.stringify(data),created,now());}
 async function record(id:string){return await db().prepare('SELECT * FROM records WHERE id=?').bind(id).first<any>();}
 async function hash(value:string){const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value));return Array.from(new Uint8Array(bytes),x=>x.toString(16).padStart(2,'0')).join('');}
+function clientIp(req:Request){return req.headers.get('cf-connecting-ip')||'local';}
+async function rateLimited(key:string,limit:number){const w=Math.floor(Date.now()/3600000);const row=await db().prepare('SELECT * FROM auth_limits WHERE key=?').bind(key).first<any>();if(row&&row.window_start===w){if(row.count>=limit)return true;await db().prepare('UPDATE auth_limits SET count=? WHERE key=?').bind(row.count+1,key).run();return false;}await db().prepare('INSERT INTO auth_limits(key,window_start,count) VALUES(?,?,1) ON CONFLICT(key) DO UPDATE SET window_start=?,count=1').bind(key,w,w).run();return false;}
 export async function GET(req:Request){try{
  const who=await identity();const url=new URL(req.url);const action=url.searchParams.get('action');
  if(action==='session'){const count=await db().prepare('SELECT count(*) n FROM admins').first<any>();return out({...who,setupAvailable:!count?.n&&!!env.ADMIN_SETUP_TOKEN});}
  if(action==='assistant')return out({enabled:false,message:'定制战术分析助手尚未启用。请先维护对手观察资料。'});
  if(action==='imports'){if(!who.admin)return out({error:'需要管理员权限'},403);const r=await db().prepare('SELECT * FROM imports ORDER BY created_at DESC').all();return out(r.results.map((r:any)=>({...r,data:JSON.parse(r.data)})));}
+ if(action==='ratings'){const pid=url.searchParams.get('playerId');if(!pid)return out({error:'缺少球员'},400);const rows=await db().prepare('SELECT dims FROM ratings WHERE player_id=?').bind(pid).all<any>();return out(aggregateRatings(rows.results.map((r:any)=>({dims:JSON.parse(r.dims)}))));}
+ if(action==='advice'){const pid=url.searchParams.get('playerId');if(!pid)return out({error:'缺少球员'},400);const r=await db().prepare("SELECT data FROM records WHERE id=?").bind('advice:'+pid).first<any>();const d=r?JSON.parse(r.data):null;return out({advice:d?.advice||null});}
  const adminView=url.searchParams.get('admin')==='1';if(adminView&&!who.admin)return out({error:'需要管理员权限'},403);
- const data=await db().prepare(adminView?'SELECT * FROM records ORDER BY created_at DESC':"SELECT * FROM records WHERE status='published' ORDER BY created_at DESC").all();
+ const data=await db().prepare(adminView?"SELECT * FROM records WHERE kind != 'advice' ORDER BY created_at DESC":"SELECT * FROM records WHERE status='published' AND kind != 'advice' ORDER BY created_at DESC").all();
  const rows=data.results.map(shape).map((r:any)=>{if(!adminView&&r.kind==='game'){const {official,rawRows,mapping,importId,resolution,...safe}=r;return {...safe,official,players:r.players?.map(({raw,...p}:any)=>p)};}return r;});
  return out(rows);
  }catch(e){return out({error:'读取失败：'+(e as Error).message},500);}}
@@ -44,6 +50,34 @@ export async function POST(req:Request){try{
   if(!env.ADMIN_SETUP_TOKEN||typeof b.token!=='string'||await hash(b.token)!==await hash(env.ADMIN_SETUP_TOKEN))return out({error:'初始化口令不正确'},403);
   const r=await db().prepare('INSERT INTO admins(id,email,created_at) SELECT ?,?,? WHERE NOT EXISTS(SELECT 1 FROM admins)').bind(who.user.userId,who.user.email,now()).run();
   return r.meta.changes?out({ok:true}):out({error:'管理员已初始化'},409);
+ }
+ if(b.action==='rate'){
+  const dims=z.record(z.string(),z.number().int().min(RATING_MIN).max(RATING_MAX)).parse(b.dims||{});
+  if(DIM_KEYS.some(k=>typeof dims[k]!=='number'))return out({error:'评分不完整'},400);
+  const pid=String(b.playerId||'');const pr=await record(pid);if(!pr||pr.kind!=='player'||pr.status!=='published')return out({error:'球员不存在'},404);
+  if(await rateLimited('rate:'+clientIp(req),20))return out({error:'评分太频繁，请稍后再试'},429);
+  const trimmed=Object.fromEntries(DIM_KEYS.map(k=>[k,dims[k]]));
+  await db().prepare('INSERT INTO ratings(id,player_id,dims,created_at) VALUES(?,?,?,?)').bind(crypto.randomUUID(),pid,JSON.stringify(trimmed),now()).run();
+  const rows=await db().prepare('SELECT dims FROM ratings WHERE player_id=?').bind(pid).all<any>();
+  return out(aggregateRatings(rows.results.map((r:any)=>({dims:JSON.parse(r.dims)}))));
+ }
+ if(b.action==='suggest'){
+  const pid=String(b.playerId||'');const pr=await record(pid);if(!pr||pr.kind!=='player'||pr.status!=='published')return out({error:'球员不存在'},404);
+  const p=JSON.parse(pr.data);
+  const games=await db().prepare("SELECT data FROM records WHERE kind='game' AND status='published'").all<any>();
+  const statRows=games.results.map((r:any)=>JSON.parse(r.data)).flatMap((g:any)=>g.players||[]).filter((x:any)=>x.playerId===pid);
+  const stats=aggregate(statRows);
+  const ratingRows=await db().prepare('SELECT dims FROM ratings WHERE player_id=?').bind(pid).all<any>();
+  const agg=aggregateRatings(ratingRows.results.map((r:any)=>({dims:JSON.parse(r.dims)})));
+  const missing=[];if(!p.position)missing.push('位置');if(!p.height&&!p.weight)missing.push('身高/体重');if(!statRows.length)missing.push('比赛数据');if(!agg.count)missing.push('六维评分');if(missing.length>=2)return out({error:'该球员资料不完整，暂不生成建议。请先补充：'+missing.join('、')},400);
+  const fingerprint=await hash(JSON.stringify({v:2,pid,position:p.position,stats,ratings:agg.dims}));
+  const adviceRow=await db().prepare("SELECT data FROM records WHERE id=?").bind('advice:'+pid).first<any>();
+  const cached=adviceRow?JSON.parse(adviceRow.data):null;
+  if(cached&&cached.fingerprint===fingerprint&&cached.advice)return out({advice:cached.advice,cached:true});
+  if(await rateLimited('suggest:'+clientIp(req),10))return out({error:'生成太频繁，请稍后再试'},429);
+  const advice=await askDeepSeek(env,buildAdvicePrompt(p,stats,agg,statRows.length));
+  await db().prepare('INSERT INTO records(id,kind,status,data,created_at,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data,updated_at=excluded.updated_at').bind('advice:'+pid,'advice','published',JSON.stringify({playerId:pid,advice,fingerprint}),now(),now()).run();
+  return out({advice,cached:false});
  }
  if(!who.admin)return out({error:'需要管理员权限'},403);
  if(b.action==='save'){
@@ -65,7 +99,7 @@ export async function POST(req:Request){try{
  }
  if(b.action==='delete'){
   const r=await record(b.id);if(!r)return out({error:'记录不存在'},404);
-  if(r.kind==='player') {const games=await db().prepare("SELECT data FROM records WHERE kind='game'").all();if(games.results.some((g:any)=>JSON.parse(g.data).players?.some((p:any)=>p.playerId===b.id)))return out({error:'球员已有比赛关联，可改为草稿，不能删除'},409);}
+  if(r.kind==='player') {const games=await db().prepare("SELECT data FROM records WHERE kind='game'").all();if(games.results.some((g:any)=>JSON.parse(g.data).players?.some((p:any)=>p.playerId===b.id)))return out({error:'球员已有比赛关联，可改为草稿，不能删除'},409);await db().prepare('DELETE FROM ratings WHERE player_id=?').bind(b.id).run();await db().prepare("DELETE FROM records WHERE id=?").bind('advice:'+b.id).run();}
   const d=JSON.parse(r.data);await db().prepare('DELETE FROM records WHERE id=?').bind(b.id).run();if(d.key)await bucket().delete(d.key);return out({ok:true});
  }
  if(b.action==='import'){
