@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { pair,analyzeRows,aggregate,rate,keys } from '../lib/stats.ts';
+import { tactics } from '../lib/tactics.ts';
+import { parseCSV } from '../lib/read-sheet.ts';
+const mapping=Object.fromEntries(keys.map((k,i)=>[k,i]));
+test('投篮出手/命中、反斜线、缺失与0',()=>{assert.deepEqual(pair('10/2'),{a:10,m:2});assert.deepEqual(pair('4\\3'),{a:4,m:3});assert.deepEqual(pair(''),{a:null,m:null});assert.deepEqual(pair('0/0'),{a:0,m:0});assert.throws(()=>pair('10次'));assert.equal(rate(0,0),'无出手');});
+test('排除总计、提示差异、保留未知出场',()=>{const r=analyzeRows([['A',5,2,1,0,1,1,'10/2','6/1','0/0',1],['总计',5,2,2,0,1,1,'10/2','6/1','1/0',1]],mapping);assert.equal(r.players.length,1);assert.equal(r.players[0].appeared,null);assert.equal(r.warnings.length,2);assert.equal(r.errors.length,0);assert.equal(r.official.assists,2);});
+test('投篮包含三分，不重复计分',()=>{const r=analyzeRows([['A',5,2,1,0,1,1,'10/2','6/1','0/0',1]],mapping);assert.equal(r.errors.length,0);const bad=analyzeRows([['A',6,2,1,0,1,1,'10/2','6/1','0/0',1]],mapping);assert.ok(bad.errors.some(e=>e.includes('得分')));});
+test('拒绝命中超过出手及不可能的两分记录',()=>{assert.ok(analyzeRows([['A',9,0,0,0,0,0,'4/5','0/0','0/0',0]],mapping).errors.length);assert.ok(analyzeRows([['A',6,0,0,0,0,0,'5/3','4/0','0/0',0]],mapping).errors.some(e=>e.includes('两分')));});
+test('汇总按分母加权，缺失不变为0',()=>{const s=aggregate([{name:'A',fga:10,fgm:2},{name:'B',fga:2,fgm:2}]);assert.equal(rate(s.fgm,s.fga),'33.3%');assert.equal(s.points,null);});
+test('CSV支持引号、逗号及换行',()=>{assert.deepEqual(parseCSV('姓名,备注\r\n"张,三","第一行\n第二行"'),[['姓名','备注'],['张,三','第一行\n第二行']]);assert.throws(()=>parseCSV('"未闭合'));});
+test('全部战术包含10人、球归属、时间和动态动作',()=>{assert.ok(tactics.length>=11);assert.equal(new Set(tactics.map(t=>t.id)).size,tactics.length);for(const t of tactics){assert.ok(t.steps.length>=4);for(const s of t.steps){assert.equal(s.positions.length,10);assert.ok(s.ball>=0&&s.ball<10);assert.ok(s.duration>0);assert.ok(s.roles.length>=5);}assert.ok(t.steps.some((s,i)=>i&&JSON.stringify(s.positions)!==JSON.stringify(t.steps[i-1].positions)));}for(const id of ['zone-23','zone-32']){const t=tactics.find(t=>t.id===id);assert.notDeepEqual(t.steps[0].positions.slice(5),t.steps[1].positions.slice(5));}});
