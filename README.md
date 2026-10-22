@@ -39,9 +39,13 @@
 | --- | --- |
 | ![首页](docs/screenshots/home.png) | ![战术](docs/screenshots/tactic.png) |
 
-| 🖼 球队相册 | ⭐ 球员分析（深色） |
+| ⭐ 球员分析 | 📅 赛程训练 |
 | --- | --- |
-| ![相册](docs/screenshots/album.png) | ![球员分析](docs/screenshots/player.png) |
+| ![球员分析](docs/screenshots/player.png) | ![赛程训练](docs/screenshots/schedule.png) |
+
+| 🖼 球队相册 | 🎬 战术动画演示 |
+| --- | --- |
+| ![相册](docs/screenshots/album.png) | ![战术动画](docs/screenshots/tactic.gif) |
 
 ## 🛠 技术栈
 

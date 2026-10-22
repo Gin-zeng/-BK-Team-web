@@ -38,9 +38,13 @@
 | --- | --- |
 | ![Home](docs/screenshots/home.png) | ![Tactics](docs/screenshots/tactic.png) |
 
-| 🖼 Album | ⭐ Player Analysis (dark) |
+| ⭐ Player Analysis | 📅 Schedule |
 | --- | --- |
-| ![Album](docs/screenshots/album.png) | ![Player Analysis](docs/screenshots/player.png) |
+| ![Player Analysis](docs/screenshots/player.png) | ![Schedule](docs/screenshots/schedule.png) |
+
+| 🖼 Album | 🎬 Tactics animation (GIF) |
+| --- | --- |
+| ![Album](docs/screenshots/album.png) | ![Tactics animation](docs/screenshots/tactic.gif) |
 
 ## 🛠 Tech Stack
 
