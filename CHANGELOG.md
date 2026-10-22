@@ -7,6 +7,11 @@
 
 ## 2026-10-23
 
+### 🏀 交互式战术板 · Interactive Tactics Board
+
+- 新增战术板：全屏白板，10 个可拖动像素块球员、画线跑位、挡拆/下顺/传球符号、半场/全场切换。
+  *Added an interactive tactics board: fullscreen whiteboard with 10 draggable pixel players, movement drawing, screen/roll/pass symbols, and half/full court toggle.*
+
 ### 🛡 稳定性优化 · Stability
 
 - DeepSeek 调用加 20 秒超时，避免请求挂起；每日推荐生成失败时写冷却标记，30 分钟内不重试，降低重复调用与成本。

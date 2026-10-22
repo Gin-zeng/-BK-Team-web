@@ -115,6 +115,10 @@ So **anyone who clones this repo only gets the code** and cannot modify the cont
 - admin access is gated by email login (the first verified email becomes super admin; later accounts can apply to become regular admins, approved by the super admin);
 - to run your own instance, configure your own Cloudflare account and secrets (see the [deployment guide](docs/部署手册.md)).
 
+## 📄 Originality & Copyright
+
+The design, feature ideas and code of "DHU Mech Hoops" are the author's **original work** and are protected by copyright. Plagiarism or passing it off as your own is prohibited; if you reference or adapt it, please credit the source and keep the author's attribution.
+
 ## 📄 License
 
 [MIT](./LICENSE) © 2026 DHU Mech Hoops
