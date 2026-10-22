@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { getChatGPTUser } from '../../chatgpt-auth';
+import { getAppUser } from '../../auth';
 import { analyzeRows, keys } from '../../../lib/stats';
 import { tactics } from '../../../lib/tactics';
 import { z } from 'zod';
@@ -8,7 +8,7 @@ const db=()=>env.DB!;
 const bucket=()=>env.BUCKET!;
 const now=()=>new Date().toISOString();
 function out(data:any,status=200){return Response.json(data,{status,headers:{'Cache-Control':'no-store'}});}
-async function identity(){const user=await getChatGPTUser();const admin=user?await db().prepare('SELECT id FROM admins WHERE id=?').bind(user.userId).first():null;return {user,admin:!!admin};}
+async function identity(){const user=await getAppUser();const admin=user?await db().prepare('SELECT id FROM admins WHERE id=?').bind(user.userId).first():null;return {user,admin:!!admin};}
 function sameOrigin(req:Request){const origin=req.headers.get('origin');if(origin&&origin!==new URL(req.url).origin)throw Error('禁止跨站写入');}
 function shape(row:any){return {...JSON.parse(row.data),id:row.id,kind:row.kind,status:row.status,createdAt:row.created_at,updatedAt:row.updated_at};}
 const short=z.string().max(300);const long=z.string().max(15000);const optional=short.optional().default('');

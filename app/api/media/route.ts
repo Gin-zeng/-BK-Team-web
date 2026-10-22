@@ -1,8 +1,8 @@
 import { env } from 'cloudflare:workers';
-import { getChatGPTUser } from '../../chatgpt-auth';
+import { getAppUser } from '../../auth';
 export const dynamic='force-dynamic';
 const json=(d:any,status=200)=>Response.json(d,{status,headers:{'Cache-Control':'no-store'}});
-async function admin(){const u=await getChatGPTUser();return u&&await env.DB!.prepare('SELECT id FROM admins WHERE id=?').bind(u.userId).first()?u:null;}
+async function admin(){const u=await getAppUser();return u&&await env.DB!.prepare('SELECT id FROM admins WHERE id=?').bind(u.userId).first()?u:null;}
 export async function GET(req:Request){try{
  const id=new URL(req.url).searchParams.get('id');const r=await env.DB!.prepare("SELECT * FROM records WHERE id=? AND kind IN ('video','image')").bind(id).first<any>();
  if(!r||(r.status!=='published'&&!await admin()))return new Response('未找到文件',{status:404});

@@ -1,0 +1,12 @@
+export const SESSION_COOKIE='mech_email_session';
+export const CODE_TTL=10*60*1000;
+export const SESSION_TTL=7*24*60*60*1000;
+export const hex=(bytes:Uint8Array)=>Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
+export function randomToken(){return hex(crypto.getRandomValues(new Uint8Array(32)));}
+export function randomCode(){let n;do{n=crypto.getRandomValues(new Uint32Array(1))[0];}while(n>=4294000000);return String(n%1000000).padStart(6,'0');}
+export async function digest(value:string){return hex(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value))));}
+export async function codeDigest(secret:string,id:string,email:string,code:string){const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);return hex(new Uint8Array(await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(JSON.stringify([id,email,code])))));}
+export function normalizeEmail(value:unknown){if(typeof value!=='string')throw Error('请填写邮箱');const email=value.trim().toLowerCase();if(email.length>254||! /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/.test(email))throw Error('请填写有效邮箱');return email;}
+export function sessionCookie(token:string,secure:boolean,expired=false){return `${SESSION_COOKIE}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${expired?0:SESSION_TTL/1000}${secure?'; Secure':''}`;}
+export async function consumeLimit(db:D1Database,key:string,windowMs:number,max:number,time:number){const row=await db.prepare('INSERT INTO auth_limits(key,window_start,count) VALUES(?,?,1) ON CONFLICT(key) DO UPDATE SET count=CASE WHEN window_start<=? THEN 1 ELSE count+1 END,window_start=CASE WHEN window_start<=? THEN excluded.window_start ELSE window_start END RETURNING count').bind(key,time,time-windowMs,time-windowMs).first<{count:number}>();return !!row&&row.count<=max;}
+export async function sendLoginEmail(apiKey:string,from:string,email:string,code:string,id:string,fetcher:typeof fetch=fetch){const r=await fetcher('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json','Idempotency-Key':`login-${id}`},body:JSON.stringify({from,to:[email],subject:'机械学院篮球战术室 · 登录验证码',text:`你的登录验证码是：${code}\n\n10分钟内有效，只能使用一次。请勿将验证码提供给他人。\n如果不是你本人发起，请忽略此邮件。`}),signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error('邮件发送失败，请稍后重试或联系管理员检查发信配置');}
