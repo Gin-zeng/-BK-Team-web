@@ -19,7 +19,7 @@ const schemas:Record<string,z.ZodTypeAny>={
  opponent:z.object({name:short.min(1),team:short.min(1),number:optional,position:optional,height:optional,hand:optional,shooting:optional,driving:optional,passing:optional,rebounding:optional,defense:optional,strengths:long,weaknesses:long,advice:long,source:short.min(1),date:short.min(1),certainty:z.enum(['观察判断','未经确认','客观资料']),gameId:optional,videoId:optional}),
  game:z.object({title:short.min(1),date:short.min(1),season:short.min(1),opponent:short.min(1),score:z.number().int().min(0).nullable(),opponentScore:z.number().int().min(0).nullable(),review:long.optional().default(''),quarterMinutes:z.number().int().min(1).max(30).default(10),starters:z.array(short).max(5).optional()}),
  tactic:z.object({title:short.min(1),baseId:z.string().refine(v=>tactics.some(t=>t.id===v)),description:long,bindings:z.record(z.string(),short).default({})}),
- video:z.object({title:short.min(1),description:long,gameId:optional,season:optional,opponent:optional,bilibiliId:short.min(1)}),
+ video:z.object({title:short.min(1),description:long,gameId:optional,season:optional,opponent:optional,bilibiliId:short.min(1),category:z.enum(['official','training','learning']).default('official')}),
  image:z.object({title:short.min(1),description:long.optional().default(''),gameId:optional,albumId:optional}),
  album:z.object({title:short.min(1),description:long.optional().default(''),coverId:optional}),
  event:z.object({type:z.enum(['match','training']),title:short.min(1),date:short.min(1),time:optional,location:short.min(1),dressCode:optional,opponent:optional,note:long.optional().default('')}),
