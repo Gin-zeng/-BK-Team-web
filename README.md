@@ -31,6 +31,16 @@
 | 🔐 管理员后台 | 内容管理、数据导入、草稿 / 发布、批次撤销 |
 | ✉️ 登录认证 | 邮箱验证码登录 + 原 ChatGPT 管理员身份 |
 
+## 🖼 截图
+
+| 🏠 首页 | 📋 战术教学 |
+| --- | --- |
+| ![首页](docs/screenshots/home.png) | ![战术](docs/screenshots/tactic.png) |
+
+| 🖼 球队相册 | ⭐ 球员分析（深色） |
+| --- | --- |
+| ![相册](docs/screenshots/album.png) | ![球员分析](docs/screenshots/player.png) |
+
 ## 🛠 技术栈
 
 - **前端**：Next.js 16 · React 19 · Vinext（RSC）· Tailwind CSS 4 · lucide-react

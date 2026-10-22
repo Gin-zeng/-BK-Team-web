@@ -30,6 +30,16 @@
 | 🔐 Admin Console | Content management, data import, draft / publish, batch undo |
 | ✉️ Auth | Email verification-code login + legacy ChatGPT admin identity |
 
+## 🖼 Screenshots
+
+| 🏠 Home | 📋 Tactics |
+| --- | --- |
+| ![Home](docs/screenshots/home.png) | ![Tactics](docs/screenshots/tactic.png) |
+
+| 🖼 Album | ⭐ Player Analysis (dark) |
+| --- | --- |
+| ![Album](docs/screenshots/album.png) | ![Player Analysis](docs/screenshots/player.png) |
+
 ## 🛠 Tech Stack
 
 - **Frontend**: Next.js 16 · React 19 · Vinext (RSC) · Tailwind CSS 4 · lucide-react
