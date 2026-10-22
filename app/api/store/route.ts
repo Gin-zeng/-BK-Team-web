@@ -15,14 +15,14 @@ function sameOrigin(req:Request){const origin=req.headers.get('origin');if(origi
 function shape(row:any){return {...JSON.parse(row.data),id:row.id,kind:row.kind,status:row.status,createdAt:row.created_at,updatedAt:row.updated_at};}
 const short=z.string().max(300);const long=z.string().max(15000);const optional=short.optional().default('');
 const schemas:Record<string,z.ZodTypeAny>={
- player:z.object({name:short.min(1),number:optional,position:optional,bio:long.optional().default(''),avatarId:optional,height:optional,weight:optional,birth:optional,hand:optional}),
+ player:z.object({name:short.min(1),number:optional,position:optional,bio:long.optional().default(''),avatarId:optional,height:optional,weight:optional,birth:optional,hand:optional,hometown:optional}),
  opponent:z.object({name:short.min(1),team:short.min(1),number:optional,position:optional,height:optional,hand:optional,shooting:optional,driving:optional,passing:optional,rebounding:optional,defense:optional,strengths:long,weaknesses:long,advice:long,source:short.min(1),date:short.min(1),certainty:z.enum(['观察判断','未经确认','客观资料']),gameId:optional,videoId:optional}),
- game:z.object({title:short.min(1),date:short.min(1),season:short.min(1),opponent:short.min(1),score:z.number().int().min(0).nullable(),opponentScore:z.number().int().min(0).nullable(),review:long.optional().default(''),quarterMinutes:z.number().int().min(1).max(30).default(10)}),
+ game:z.object({title:short.min(1),date:short.min(1),season:short.min(1),opponent:short.min(1),score:z.number().int().min(0).nullable(),opponentScore:z.number().int().min(0).nullable(),review:long.optional().default(''),quarterMinutes:z.number().int().min(1).max(30).default(10),starters:z.array(short).max(5).optional()}),
  tactic:z.object({title:short.min(1),baseId:z.string().refine(v=>tactics.some(t=>t.id===v)),description:long,bindings:z.record(z.string(),short).default({})}),
- video:z.object({title:short.min(1),description:long,gameId:optional,season:optional,opponent:optional,duration:z.number().min(0).nullable().optional()}),
+ video:z.object({title:short.min(1),description:long,gameId:optional,season:optional,opponent:optional,bilibiliId:short.min(1)}),
  image:z.object({title:short.min(1),description:long.optional().default(''),gameId:optional,albumId:optional}),
  album:z.object({title:short.min(1),description:long.optional().default(''),coverId:optional}),
- team:z.object({name:short.min(1),description:long,color:z.string().regex(/^#[0-9a-fA-F]{6}$/),quarterMinutes:z.number().int().min(1).max(30),badgeId:optional}),
+ team:z.object({name:short.min(1),description:long,color:z.string().regex(/^#[0-9a-fA-F]{6}$/),quarterMinutes:z.number().int().min(1).max(30),badgeId:optional,starters:z.array(short).max(5).optional()}),
 };
 function stmtSave(id:string,kind:string,status:string,data:any,created=now()){return db().prepare('INSERT INTO records(id,kind,status,data,created_at,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET status=excluded.status,data=excluded.data,updated_at=excluded.updated_at').bind(id,kind,status,JSON.stringify(data),created,now());}
 async function record(id:string){return await db().prepare('SELECT * FROM records WHERE id=?').bind(id).first<any>();}
@@ -86,13 +86,13 @@ export async function POST(req:Request){try{
   const id=b.id||crypto.randomUUID();const old=b.id?await record(id):null;
   if(b.id&&!old)return out({error:'记录不存在'},404);
   if(old&&old.kind!==b.kind)return out({error:'内容类型不匹配'},400);
-  if(['video','image'].includes(b.kind)&&!old)return out({error:'请先上传文件'},400);
+  if(b.kind==='image'&&!old)return out({error:'请先上传文件'},400);
   const merged={...(old?JSON.parse(old.data):{}),...data};
   await stmtSave(id,b.kind,status,merged,old?.created_at).run();return out({id});
  }
  if(b.action==='status'){
   const status=z.enum(['draft','published']).parse(b.status);const r=await record(b.id);if(!r)return out({error:'记录不存在'},404);
-  const data=JSON.parse(r.data);if(r.kind==='video'&&!data.key)return out({error:'录像尚未上传完成'},400);
+  const data=JSON.parse(r.data);if(r.kind==='video'&&!data.bilibiliId)return out({error:'请先填写B站视频链接'},400);
   const commands=[db().prepare('UPDATE records SET status=?,updated_at=? WHERE id=?').bind(status,now(),b.id)];
   // Imported player cards must be explicitly published, independently of a match.
   await db().batch(commands);return out({ok:true});

@@ -17,7 +17,7 @@ export async function POST(req:Request){try{
  const u=await admin();if(!u)return json({error:'需要管理员权限'},403);
  const url=new URL(req.url),action=url.searchParams.get('action');
  if(action==='init'){
-  const b:any=await req.json();if(!['video/mp4','video/webm','image/png','image/jpeg','image/webp'].includes(b.mime)||!Number.isSafeInteger(b.size)||b.size<1||b.size>5*1024**3)return json({error:'支持MP4/WebM及PNG/JPEG/WebP，单文件上限5GB'},400);
+  const b:any=await req.json();if(!['image/png','image/jpeg','image/webp'].includes(b.mime)||!Number.isSafeInteger(b.size)||b.size<1||b.size>5*1024**3)return json({error:'支持PNG/JPEG/WebP，单文件上限5GB'},400);
   if(!b.title?.trim()||b.title.length>300)return json({error:'请填写标题（最多300字）'},400);
   const id=crypto.randomUUID(),key='media/'+id;const upload=await env.BUCKET!.createMultipartUpload(key,{httpMetadata:{contentType:b.mime}});
   await env.DB!.prepare('INSERT INTO uploads(id,key,upload_id,owner,data,created_at) VALUES(?,?,?,?,?,?)').bind(id,key,upload.uploadId,u.userId,JSON.stringify({title:b.title,mime:b.mime,size:b.size,gameId:String(b.gameId||''),albumId:String(b.albumId||''),description:String(b.description||'').slice(0,15000),season:String(b.season||''),opponent:String(b.opponent||''),duration:typeof b.duration==='number'?b.duration:null,parts:[],received:0}),new Date().toISOString()).run();return json({id});
