@@ -1,7 +1,6 @@
-// 部署到你自己的 Cloudflare 账号时使用（与 .openai/hosting.json 的 Sites 托管互不影响）：
-//   1) npm run build
-//   2) npx wrangler deploy --config wrangler.deploy.jsonc
-// 部署前必须把下面的 database_id 换成你自己的 D1 ID（见 docs/迁移到自有Cloudflare账号.md）
+// 唯一生产站的部署配置：www.jxlq.top（自有 Cloudflare 账号）
+//   一键命令：npm run deploy:cf
+//   D1：mech-hoops-db / R2：mech-hoops-media（完整步骤见 docs/部署手册.md）
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "mechanical-basketball",
@@ -18,7 +17,7 @@
     {
       "binding": "DB",
       "database_name": "mech-hoops-db",
-      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+      "database_id": "e44acb24-9672-4ea7-8b87-706c281a9356"
     }
   ],
   "r2_buckets": [
