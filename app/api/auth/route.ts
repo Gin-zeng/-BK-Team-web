@@ -56,7 +56,7 @@ export async function POST(req:Request){
    await db.batch([
     db.prepare('INSERT OR IGNORE INTO email_users(id,email,created_at) VALUES(?,?,?)').bind(candidate,email,created),
     db.prepare("INSERT OR IGNORE INTO auth_bootstrap(id,user_id) SELECT 'first-email-admin',id FROM email_users WHERE email=?").bind(email),
-    db.prepare("INSERT OR IGNORE INTO admins(id,email,created_at) SELECT u.id,u.email,? FROM email_users u JOIN auth_bootstrap b ON b.user_id=u.id WHERE b.id='first-email-admin' AND u.email=?").bind(created,email),
+    db.prepare("INSERT OR IGNORE INTO admins(id,email,role,created_at) SELECT u.id,u.email,'super',? FROM email_users u JOIN auth_bootstrap b ON b.user_id=u.id WHERE b.id='first-email-admin' AND u.email=?").bind(created,email),
     db.prepare('INSERT INTO email_sessions(token_hash,user_id,expires_at,created_at) SELECT ?,id,?,? FROM email_users WHERE email=?').bind(await digest(token),time+SESSION_TTL,time,email),
    ]);
    return out({ok:true},200,{'Set-Cookie':sessionCookie(token,secure)});

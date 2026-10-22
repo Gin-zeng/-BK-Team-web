@@ -10,7 +10,7 @@ const db=()=>env.DB!;
 const bucket=()=>env.BUCKET!;
 const now=()=>new Date().toISOString();
 function out(data:any,status=200,cache='no-store'){return Response.json(data,{status,headers:{'Cache-Control':cache}});}
-async function identity(){const user=await getAppUser();const admin=user?await db().prepare('SELECT id FROM admins WHERE id=?').bind(user.userId).first():null;return {user,admin:!!admin};}
+async function identity(){const user=await getAppUser();const admin=user?await db().prepare('SELECT id,role FROM admins WHERE id=?').bind(user.userId).first<{id:string;role:string}>():null;return {user,admin:!!admin,role:admin?.role||null};}
 function sameOrigin(req:Request){const origin=req.headers.get('origin');if(origin&&origin!==new URL(req.url).origin)return out({error:'禁止跨站写入'},403);return null;}
 function shape(row:any){return {...JSON.parse(row.data),id:row.id,kind:row.kind,status:row.status,createdAt:row.created_at,updatedAt:row.updated_at};}
 const short=z.string().max(300);const long=z.string().max(15000);const optional=short.optional().default('');
@@ -39,8 +39,9 @@ export async function GET(req:Request){try{
  if(action==='advice'){const pid=url.searchParams.get('playerId');if(!pid)return out({error:'缺少球员'},400);const r=await db().prepare("SELECT data FROM records WHERE id=?").bind('advice:'+pid).first<any>();const d=r?JSON.parse(r.data):null;return out({advice:d?.advice||null},200,'public, max-age=30');}
  if(action==='reviews'){const gid=url.searchParams.get('gameId');if(!gid)return out({error:'缺少比赛'},400);const rows=await db().prepare("SELECT data,created_at FROM records WHERE kind='review' ORDER BY created_at DESC").all<any>();return out(rows.results.map((r:any)=>({...JSON.parse(r.data),createdAt:r.created_at})).filter((r:any)=>r.gameId===gid),200,'public, max-age=30');}
  if(action==='messages'){const pid=url.searchParams.get('playerId');if(!pid)return out({error:'缺少球员'},400);const rows=await db().prepare("SELECT data,created_at FROM records WHERE kind='message' ORDER BY created_at DESC").all<any>();return out(rows.results.map((r:any)=>({...JSON.parse(r.data),createdAt:r.created_at})).filter((r:any)=>r.playerId===pid),200,'public, max-age=30');}
+ if(action==='applications'){if(who.role!=='super')return out({error:'需要超级管理员权限'},403);const rows=await db().prepare("SELECT * FROM records WHERE kind='application' AND status='pending' ORDER BY created_at DESC").all<any>();return out(rows.results.map((r:any)=>({id:r.id,...JSON.parse(r.data),createdAt:r.created_at})));}
  const adminView=url.searchParams.get('admin')==='1';if(adminView&&!who.admin)return out({error:'需要管理员权限'},403);
- const data=await db().prepare(adminView?"SELECT * FROM records WHERE kind != 'advice' AND kind != 'review' AND kind != 'message' ORDER BY created_at DESC":"SELECT * FROM records WHERE status='published' AND kind != 'advice' AND kind != 'review' AND kind != 'message' ORDER BY created_at DESC").all();
+ const data=await db().prepare(adminView?"SELECT * FROM records WHERE kind != 'advice' AND kind != 'review' AND kind != 'message' AND kind != 'application' ORDER BY created_at DESC":"SELECT * FROM records WHERE status='published' AND kind != 'advice' AND kind != 'review' AND kind != 'message' AND kind != 'application' ORDER BY created_at DESC").all();
  const rows=data.results.map(shape).map((r:any)=>{if(!adminView&&r.kind==='game'){const {official,rawRows,mapping,importId,resolution,...safe}=r;return {...safe,official,players:r.players?.map(({raw,...p}:any)=>p)};}return r;});
  return out(rows,200,adminView?'no-store':'public, max-age=60, stale-while-revalidate=300');
  }catch(e){return out({error:'读取失败：'+(e as Error).message},500);}}
@@ -84,6 +85,17 @@ export async function POST(req:Request){try{
   await db().prepare('INSERT INTO records(id,kind,status,data,created_at,updated_at) VALUES(?,?,?,?,?,?)').bind(crypto.randomUUID(),'message','published',JSON.stringify({playerId:pid,name,content}),now(),now()).run();
   return out({ok:true});
  }
+ if(b.action==='apply-admin'){
+  if(!who.user)return out({error:'请先登录'},401);
+  if(who.admin)return out({error:'你已是管理员'},400);
+  const userId=who.user.userId,email=who.user.email||'';
+  const note=String(b.note||'').trim().slice(0,500);
+  const pend=await db().prepare("SELECT data FROM records WHERE kind='application' AND status='pending'").all<any>();
+  if(pend.results.some((r:any)=>JSON.parse(r.data).userId===userId))return out({error:'你已有待审核的申请'},409);
+  if(await rateLimited('apply:'+clientIp(req),5))return out({error:'申请太频繁，请稍后再试'},429);
+  await db().prepare('INSERT INTO records(id,kind,status,data,created_at,updated_at) VALUES(?,?,?,?,?,?)').bind(crypto.randomUUID(),'application','pending',JSON.stringify({userId,email,note}),now(),now()).run();
+  return out({ok:true});
+ }
  if(b.action==='suggest'){
   const pid=String(b.playerId||'');const pr=await record(pid);if(!pr||pr.kind!=='player'||pr.status!=='published')return out({error:'球员不存在'},404);
   const p=JSON.parse(pr.data);
@@ -103,6 +115,21 @@ export async function POST(req:Request){try{
   return out({advice,cached:false});
  }
  if(!who.admin)return out({error:'需要管理员权限'},403);
+ if(b.action==='approve-admin'){
+  if(who.role!=='super')return out({error:'需要超级管理员权限'},403);
+  const app=await db().prepare("SELECT * FROM records WHERE id=? AND kind='application' AND status='pending'").bind(String(b.id||'')).first<any>();
+  if(!app)return out({error:'申请不存在或已处理'},404);
+  const d=JSON.parse(app.data);
+  await db().batch([db().prepare('INSERT OR IGNORE INTO admins(id,email,role,created_at) VALUES(?,?,?,?)').bind(d.userId,d.email||'','admin',now()),db().prepare('UPDATE records SET status=?,updated_at=? WHERE id=?').bind('approved',now(),app.id)]);
+  return out({ok:true});
+ }
+ if(b.action==='reject-admin'){
+  if(who.role!=='super')return out({error:'需要超级管理员权限'},403);
+  const app=await db().prepare("SELECT * FROM records WHERE id=? AND kind='application' AND status='pending'").bind(String(b.id||'')).first<any>();
+  if(!app)return out({error:'申请不存在或已处理'},404);
+  await db().prepare('UPDATE records SET status=?,updated_at=? WHERE id=?').bind('rejected',now(),app.id).run();
+  return out({ok:true});
+ }
  if(b.action==='save'){
   if(!schemas[b.kind])return out({error:'不支持的内容类型'},400);
   const status=z.enum(['draft','published']).parse(b.status||'draft');const data=schemas[b.kind].parse(b.data);

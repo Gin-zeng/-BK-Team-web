@@ -10,7 +10,7 @@ export const imports = sqliteTable('imports', {
   id: text('id').primaryKey(), fingerprint: text('fingerprint').notNull().unique(), gameId: text('game_id').notNull(),
   data: text('data').notNull(), state: text('state').notNull().default('active'), createdAt: text('created_at').notNull(),
 });
-export const admins = sqliteTable('admins', { id: text('id').primaryKey(), email: text('email'), createdAt: text('created_at').notNull() });
+export const admins = sqliteTable('admins', { id: text('id').primaryKey(), email: text('email'), role: text('role').notNull().default('admin'), createdAt: text('created_at').notNull() });
 export const uploads = sqliteTable('uploads', {
   id: text('id').primaryKey(), key: text('key').notNull(), uploadId: text('upload_id').notNull(),
   owner: text('owner').notNull(), data: text('data').notNull(), createdAt: text('created_at').notNull(),
