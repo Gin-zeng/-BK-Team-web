@@ -746,6 +746,16 @@ button.text-button { font-size: inherit; }
 .schedule-info span { display: inline-flex; align-items: center; gap: 5px; }
 @media (max-width: 760px) { .schedule-cards { grid-template-columns: 1fr; } }
 
+/* ============ 队员复盘 ============ */
+.review-form { display: flex; flex-direction: column; gap: 13px; margin-bottom: 20px; }
+.review-list { display: flex; flex-direction: column; gap: 12px; }
+.review-item { border-top: 1px solid var(--line); padding-top: 12px; }
+.review-item:first-child { border-top: 0; padding-top: 0; }
+.review-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.review-head strong { font-size: 14px; }
+.review-head .muted { font-size: 11px; }
+.review-item p { font-size: 13px; color: var(--muted); white-space: pre-wrap; }
+
 /* ============ 响应式 ============ */
 @media (min-width: 1500px) {
   main { padding-left: 55px; padding-right: 55px; }

@@ -37,8 +37,9 @@ export async function GET(req:Request){try{
  if(action==='imports'){if(!who.admin)return out({error:'需要管理员权限'},403);const r=await db().prepare('SELECT * FROM imports ORDER BY created_at DESC').all();return out(r.results.map((r:any)=>({...r,data:JSON.parse(r.data)})));}
  if(action==='ratings'){const pid=url.searchParams.get('playerId');if(!pid)return out({error:'缺少球员'},400);const rows=await db().prepare('SELECT dims FROM ratings WHERE player_id=?').bind(pid).all<any>();return out(aggregateRatings(rows.results.map((r:any)=>({dims:JSON.parse(r.dims)}))),200,'public, max-age=30');}
  if(action==='advice'){const pid=url.searchParams.get('playerId');if(!pid)return out({error:'缺少球员'},400);const r=await db().prepare("SELECT data FROM records WHERE id=?").bind('advice:'+pid).first<any>();const d=r?JSON.parse(r.data):null;return out({advice:d?.advice||null},200,'public, max-age=30');}
+ if(action==='reviews'){const gid=url.searchParams.get('gameId');if(!gid)return out({error:'缺少比赛'},400);const rows=await db().prepare("SELECT data,created_at FROM records WHERE kind='review' ORDER BY created_at DESC").all<any>();return out(rows.results.map((r:any)=>({...JSON.parse(r.data),createdAt:r.created_at})).filter((r:any)=>r.gameId===gid),200,'public, max-age=30');}
  const adminView=url.searchParams.get('admin')==='1';if(adminView&&!who.admin)return out({error:'需要管理员权限'},403);
- const data=await db().prepare(adminView?"SELECT * FROM records WHERE kind != 'advice' ORDER BY created_at DESC":"SELECT * FROM records WHERE status='published' AND kind != 'advice' ORDER BY created_at DESC").all();
+ const data=await db().prepare(adminView?"SELECT * FROM records WHERE kind != 'advice' AND kind != 'review' ORDER BY created_at DESC":"SELECT * FROM records WHERE status='published' AND kind != 'advice' AND kind != 'review' ORDER BY created_at DESC").all();
  const rows=data.results.map(shape).map((r:any)=>{if(!adminView&&r.kind==='game'){const {official,rawRows,mapping,importId,resolution,...safe}=r;return {...safe,official,players:r.players?.map(({raw,...p}:any)=>p)};}return r;});
  return out(rows,200,'public, max-age=60, stale-while-revalidate=300');
  }catch(e){return out({error:'读取失败：'+(e as Error).message},500);}}
@@ -61,6 +62,16 @@ export async function POST(req:Request){try{
   await db().prepare('INSERT INTO ratings(id,player_id,dims,created_at) VALUES(?,?,?,?)').bind(crypto.randomUUID(),pid,JSON.stringify(trimmed),now()).run();
   const rows=await db().prepare('SELECT dims FROM ratings WHERE player_id=?').bind(pid).all<any>();
   return out(aggregateRatings(rows.results.map((r:any)=>({dims:JSON.parse(r.dims)}))));
+ }
+ if(b.action==='review'){
+  const gameId=String(b.gameId||'');const gr=await record(gameId);if(!gr||gr.kind!=='game'||gr.status!=='published')return out({error:'比赛不存在'},404);
+  const name=String(b.name||'').trim(),content=String(b.content||'').trim();
+  if(!name)return out({error:'请填写姓名'},400);
+  if(!content)return out({error:'请填写复盘内容'},400);
+  if(name.length>300||content.length>15000)return out({error:'内容过长'},400);
+  if(await rateLimited('review:'+clientIp(req),10))return out({error:'提交太频繁，请稍后再试'},429);
+  await db().prepare('INSERT INTO records(id,kind,status,data,created_at,updated_at) VALUES(?,?,?,?,?,?)').bind(crypto.randomUUID(),'review','published',JSON.stringify({gameId,name,content}),now(),now()).run();
+  return out({ok:true});
  }
  if(b.action==='suggest'){
   const pid=String(b.playerId||'');const pr=await record(pid);if(!pr||pr.kind!=='player'||pr.status!=='published')return out({error:'球员不存在'},404);
