@@ -57,19 +57,13 @@ npm run dev
 
 管理员可以在球队设置维护名称、介绍、主题色、默认每节分钟数及已发布的队徽图片。新比赛可覆盖每节时长。
 
-## 双目标部署
+## 部署（唯一生产站：www.jxlq.top）
 
-同一份代码支持两个部署目标，D1/R2 绑定名一致（`DB` / `BUCKET`），业务代码无需区分：
-
-| 目标 | 访问地址 | 部署方式 | 配置文件 |
-| --- | --- | --- | --- |
-| OpenAI Sites（Codex 发布） | `https://mechanical-hoops-lab.quirkyfinch.chatgpt.site` | Codex 按 Sites 流程发布 | `.openai/hosting.json` |
-| 自有 Cloudflare 账号（国内直连） | `https://www.jxlq.top` | `npm run deploy:cf` | `wrangler.deploy.jsonc` |
-
-- 两个目标各自使用独立的 D1/R2，**数据不互通**：日常内容请在 `www.jxlq.top` 维护，Sites 那条作为 Codex 的开发预览环境。
-- 登录方式自适应：Sites 环境走平台身份，自有账号走邮箱验证码（`app/auth.ts` 已做双轨回退）。
-- 自有账号的首次部署步骤见 [docs/迁移到自有Cloudflare账号.md](docs/迁移到自有Cloudflare账号.md)。
-- 注意：`*.workers.dev` 默认域名在国内被墙，只使用 `www.jxlq.top` 访问。
+- 生产站：`https://www.jxlq.top`（自有 Cloudflare 账号：Workers + D1 + R2），国内直连可用；
+- 部署命令：`npm run deploy:cf`（构建 + 守卫检查 + wrangler deploy，配置见 `wrangler.deploy.jsonc`）；
+- 完整步骤、密钥配置、故障排查见 [docs/部署手册.md](docs/部署手册.md)；
+- OpenAI Sites（`chatgpt.site`）已停止作为生产目标，仅保留历史记录；
+- 内容只维护在 `www.jxlq.top`，Codex / DeepSeek 改完代码后统一由 `npm run deploy:cf` 发布。
 
 ## 验证
 
