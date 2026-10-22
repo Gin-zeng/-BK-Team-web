@@ -709,7 +709,7 @@ button.text-button { font-size: inherit; }
 .rating-options button:hover { background: var(--hover); }
 .rating-options button.selected { background: var(--green); border-color: var(--green); color: #fff; }
 .advice-card .prose { line-height: 2; }
-@media (max-width: 760px) { .analysis-grid { grid-template-columns: 1fr; } .rating-options button { width: 30px; height: 30px; } }
+@media (max-width: 760px) { .analysis-grid { grid-template-columns: 1fr; } .rating-options button { width: 36px; height: 36px; } }
 
 /* ============ 首发/替补阵容 ============ */
 .lineup-marquee { overflow: hidden; }
@@ -755,6 +755,15 @@ button.text-button { font-size: inherit; }
 .review-head strong { font-size: 14px; }
 .review-head .muted { font-size: 11px; }
 .review-item p { font-size: 13px; color: var(--muted); white-space: pre-wrap; }
+
+/* ============ 观感与动效 ============ */
+.game-row, .event-card, .schedule-card, .opponent-grid article { transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.16s ease; }
+.game-row:hover, .event-card:hover, .schedule-card:hover, .opponent-grid article:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.overview-icon, .tactic-visual, .brand-icon { transition: transform 0.25s ease, background 0.16s ease; }
+.overview-card:hover .overview-icon, .tactic-card:hover .tactic-visual { transform: scale(1.05); }
+.search input { transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease; }
+.search input:focus { border-color: var(--accent); }
+button, a { transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
 
 /* ============ 响应式 ============ */
 @media (min-width: 1500px) {
