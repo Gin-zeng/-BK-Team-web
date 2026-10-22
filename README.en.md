@@ -26,7 +26,9 @@
 | 🎯 Opponent Profiles | Manual scouting notes + preparation advice |
 | 🎬 Video Center | Bilibili streaming playback (paste a BV id / link), no cloud storage cost |
 | 🖼 Team Album | Album grouping, covers, photo lightbox |
-| 🌙 Dark Mode | Light / dark theme toggle, follows system, persisted locally |
+| 📅 Schedule & Training | Match schedule & daily training (time, location, dress code), with a homepage "upcoming matches" section |
+| 💬 Reviews & Messages | Match reviews and player message board (visitor, name required) |
+| 🌙 Themes | Three themes: warm light / warm dark / blue-white neumorphism |
 | 🔐 Admin Console | Content management, data import, draft / publish, batch undo |
 | ✉️ Auth | Email verification-code login + legacy ChatGPT admin identity |
 
@@ -86,6 +88,7 @@ See the [deployment guide](docs/部署手册.md) for full steps, secrets and tro
 
 - ✅ **Phase 1**: public browsing, admin auth, import validation, 2D tactics, opponent profiles, video & image upload
 - ✅ **Phase 2**: dark mode, team album, 6-dimension player analysis & AI advice, starting lineup & bench, Bilibili video, hometown
+- ✅ **Phase 3**: schedule & training, blue-white neumorphism theme, match reviews, player message board
 - ⏳ **Planned**: video clip annotation, tactics–video linking, free-form play drawing, custom analysis assistant
 - 💭 **Future**: auto event detection & tracking validated on real samples, optional 3D teaching
 

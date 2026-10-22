@@ -7,6 +7,15 @@
 
 ## 2026-10-23
 
+### 🚀 赛程训练 / 蓝白主题 / 复盘留言 · Schedule, Blue Theme, Reviews & Messages
+
+- **赛程与日常训练**：新增「日程」类型（比赛/训练），含时间、地点、着装要求；首页新增「近期赛程」展示接下来 2 场比赛。
+  *Match schedule & daily training: new "event" type (match/training) with time, location and dress code; the homepage shows the next 2 matches.*
+- **蓝白新拟物主题**：新增第三套主题（蓝白主色调 + 双重阴影新拟物内凹外凸），三套主题可循环切换。
+  *New blue-white neumorphism theme (3rd theme option, dual-shadow soft UI), with a three-way theme toggle.*
+- **比赛队员复盘**：比赛详情访客可填写复盘（需填姓名），并新增球员「队员有话」留言板。
+  *Match reviews (visitor, name required) and a player "messages" board on the player detail page.*
+
 ### ⚡ 性能优化与代码质量 · Performance & Code Quality
 
 - **性能**：图片懒加载、`Admin`/`PlayerAnalysis` 组件按需加载（代码分割）、公开接口加缓存头（store 60s / ratings·advice 30s / media 1h）。
