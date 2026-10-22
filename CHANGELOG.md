@@ -7,6 +7,13 @@
 
 ## 2026-10-23
 
+### 🎨 观感动效打磨与截图更新 · Polish & Screenshots
+
+- 多端触控目标优化（移动端评分按钮放大）、卡片悬停浮起与阴影、图标悬停缩放、统一缓动曲线，不改任何功能与位置。
+  *Touch-target tuning, card hover lift & shadow, icon hover scale, unified easing — no functionality or layout changes.*
+- README 截图更新为最新功能，并新增战术动画 GIF 演示；首页标题改为「不是一个人的比赛，而是团队的篮球 🏀」。
+  *README screenshots refreshed with the latest features plus an animated tactics GIF; the home title now reads "It's not one man's game, it's team basketball 🏀".*
+
 ### 🚀 赛程训练 / 蓝白主题 / 复盘留言 · Schedule, Blue Theme, Reviews & Messages
 
 - **赛程与日常训练**：新增「日程」类型（比赛/训练），含时间、地点、着装要求；首页新增「近期赛程」展示接下来 2 场比赛。
