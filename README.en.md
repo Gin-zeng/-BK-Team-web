@@ -24,7 +24,7 @@
 | ⭐ 6-Dimension Ratings | Anonymous visitor scoring (scoring / shooting / rebounding / playmaking / defense / athleticism) averaged into a radar chart |
 | 🤖 AI Advice | DeepSeek generates four-section advice (role / offense / defense / training focus) from data + ratings + position |
 | 🎯 Opponent Profiles | Manual scouting notes + preparation advice |
-| 🎬 Video Center | Three sub-modules (official / training / tactics-learning videos), Bilibili streaming, no cloud storage cost |
+| 🎬 Video Center | Three sub-modules (official / training / tactics-learning videos), Bilibili streaming; AI daily recommendation for tactics-learning |
 | 🖼 Team Album | Album grouping, covers, photo lightbox |
 | 📅 Schedule & Training | Match schedule & daily training (time, location, dress code), with a homepage "upcoming matches" section |
 | 💬 Reviews & Messages | Match reviews and player message board (visitor, name required) |

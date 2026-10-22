@@ -7,6 +7,11 @@
 
 ## 2026-10-23
 
+### 🤖 AI 每日推荐 · AI Daily Recommendation
+
+- 新增「训练方向」设置，DeepSeek 从战术学习视频库每日精选 3-5 个视频 + 推荐理由，展示在录像中心「战术学习」标签页；当天缓存、改方向自动重新生成。
+  *Added a "training focus" setting; DeepSeek picks 3-5 tactics-learning videos daily with reasons, shown in the video center's "Tactics Learning" tab; cached daily and regenerated when the focus changes.*
+
 ### 🎬 录像中心三分类 · Video Center Categories
 
 - 录像中心拆分为正赛 / 训练赛 / 战术学习三个子模块；视频新增分类字段，战术手册底部挂「战术学习视频」。
