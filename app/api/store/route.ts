@@ -18,7 +18,8 @@ const schemas:Record<string,z.ZodTypeAny>={
  game:z.object({title:short.min(1),date:short.min(1),season:short.min(1),opponent:short.min(1),score:z.number().int().min(0).nullable(),opponentScore:z.number().int().min(0).nullable(),review:long.optional().default(''),quarterMinutes:z.number().int().min(1).max(30).default(10)}),
  tactic:z.object({title:short.min(1),baseId:z.string().refine(v=>tactics.some(t=>t.id===v)),description:long,bindings:z.record(z.string(),short).default({})}),
  video:z.object({title:short.min(1),description:long,gameId:optional,season:optional,opponent:optional,duration:z.number().min(0).nullable().optional()}),
- image:z.object({title:short.min(1),description:long.optional().default(''),gameId:optional}),
+ image:z.object({title:short.min(1),description:long.optional().default(''),gameId:optional,albumId:optional}),
+ album:z.object({title:short.min(1),description:long.optional().default(''),coverId:optional}),
  team:z.object({name:short.min(1),description:long,color:z.string().regex(/^#[0-9a-fA-F]{6}$/),quarterMinutes:z.number().int().min(1).max(30),badgeId:optional}),
 };
 function stmtSave(id:string,kind:string,status:string,data:any,created=now()){return db().prepare('INSERT INTO records(id,kind,status,data,created_at,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET status=excluded.status,data=excluded.data,updated_at=excluded.updated_at').bind(id,kind,status,JSON.stringify(data),created,now());}
