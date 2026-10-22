@@ -23,7 +23,7 @@ const schemas:Record<string,z.ZodTypeAny>={
  image:z.object({title:short.min(1),description:long.optional().default(''),gameId:optional,albumId:optional}),
  album:z.object({title:short.min(1),description:long.optional().default(''),coverId:optional}),
  event:z.object({type:z.enum(['match','training']),title:short.min(1),date:short.min(1),time:optional,location:short.min(1),dressCode:optional,opponent:optional,note:long.optional().default('')}),
- team:z.object({name:short.min(1),description:long,color:z.string().regex(/^#[0-9a-fA-F]{6}$/),quarterMinutes:z.number().int().min(1).max(30),badgeId:optional,starters:z.array(short).max(5).optional()}),
+ team:z.object({name:short.min(1),description:long,color:z.string().regex(/^#[0-9a-fA-F]{6}$/),quarterMinutes:z.number().int().min(1).max(30),badgeId:optional,starters:z.array(short).max(5).optional(),trainingFocus:optional}),
 };
 function stmtSave(id:string,kind:string,status:string,data:any,created=now()){return db().prepare('INSERT INTO records(id,kind,status,data,created_at,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET status=excluded.status,data=excluded.data,updated_at=excluded.updated_at').bind(id,kind,status,JSON.stringify(data),created,now());}
 async function record(id:string){return await db().prepare('SELECT * FROM records WHERE id=?').bind(id).first<any>();}
@@ -40,8 +40,30 @@ export async function GET(req:Request){try{
  if(action==='reviews'){const gid=url.searchParams.get('gameId');if(!gid)return out({error:'缺少比赛'},400);const rows=await db().prepare("SELECT data,created_at FROM records WHERE kind='review' ORDER BY created_at DESC").all<any>();return out(rows.results.map((r:any)=>({...JSON.parse(r.data),createdAt:r.created_at})).filter((r:any)=>r.gameId===gid),200,'public, max-age=30');}
  if(action==='messages'){const pid=url.searchParams.get('playerId');if(!pid)return out({error:'缺少球员'},400);const rows=await db().prepare("SELECT data,created_at FROM records WHERE kind='message' ORDER BY created_at DESC").all<any>();return out(rows.results.map((r:any)=>({...JSON.parse(r.data),createdAt:r.created_at})).filter((r:any)=>r.playerId===pid),200,'public, max-age=30');}
  if(action==='applications'){if(who.role!=='super')return out({error:'需要超级管理员权限'},403);const rows=await db().prepare("SELECT * FROM records WHERE kind='application' AND status='pending' ORDER BY created_at DESC").all<any>();return out(rows.results.map((r:any)=>({id:r.id,...JSON.parse(r.data),createdAt:r.created_at})));}
+ if(action==='recommendation'){
+  const teamRow=await db().prepare("SELECT data FROM records WHERE kind='team'").first<any>();
+  const focus=teamRow?String(JSON.parse(teamRow.data).trainingFocus||'').trim():'';
+  const vids=await db().prepare("SELECT id,data FROM records WHERE kind='video' AND status='published'").all<any>();
+  const pool=vids.results.map((r:any)=>({id:r.id,...JSON.parse(r.data)})).filter((v:any)=>(v.category||'official')==='learning');
+  if(!focus||!pool.length)return out({focus,items:[]},200,'public, max-age=60');
+  const date=new Date().toISOString().slice(0,10);
+  const rec=await db().prepare("SELECT data FROM records WHERE id='recommendation:today'").first<any>();
+  const cached=rec?JSON.parse(rec.data):null;
+  if(cached&&cached.date===date&&cached.focus===focus&&cached.items?.length)return out({focus,items:cached.items},200,'public, max-age=60');
+  try{
+   if(!env.DEEPSEEK_API_KEY)throw Error('未配置 AI 密钥');
+   if(await rateLimited('recommend:'+clientIp(req),5))return out({focus,items:[]},200,'public, max-age=60');
+   const list=pool.map((v:any)=>`- id:${v.id} | ${v.title}${v.description?' | '+String(v.description).slice(0,80):''}`).join('\n');
+   const raw=await askDeepSeek(env,[{role:'system',content:'你是篮球训练助手。根据训练方向，从给定的学习视频列表里选出 3-5 个最相关的视频，返回 JSON：{"items":[{"id":"视频id","reason":"一句话推荐理由"}]}。只返回 JSON，不要其他内容。'},{role:'user',content:`训练方向：${focus}\n\n学习视频列表：\n${list}`}],true);
+   const parsed=JSON.parse(raw.replace(/```(?:json)?/g,'').trim());
+   const items=(Array.isArray(parsed?.items)?parsed.items:[]).filter((it:any)=>it&&typeof it.id==='string'&&pool.some((v:any)=>v.id===it.id)).slice(0,5).map((it:any)=>{const v=pool.find((p:any)=>p.id===it.id);return {id:v.id,title:v.title,bilibiliId:v.bilibiliId,reason:String(it.reason||'').slice(0,200)};});
+   const data={date,focus,items};
+   await db().prepare("INSERT INTO records(id,kind,status,data,created_at,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data,updated_at=excluded.updated_at").bind('recommendation:today','recommendation','published',JSON.stringify(data),now(),now()).run();
+   return out({focus,items},200,'public, max-age=60');
+  }catch(e){return out({focus,items:[]},200,'public, max-age=60');}
+ }
  const adminView=url.searchParams.get('admin')==='1';if(adminView&&!who.admin)return out({error:'需要管理员权限'},403);
- const data=await db().prepare(adminView?"SELECT * FROM records WHERE kind != 'advice' AND kind != 'review' AND kind != 'message' AND kind != 'application' ORDER BY created_at DESC":"SELECT * FROM records WHERE status='published' AND kind != 'advice' AND kind != 'review' AND kind != 'message' AND kind != 'application' ORDER BY created_at DESC").all();
+ const data=await db().prepare(adminView?"SELECT * FROM records WHERE kind != 'advice' AND kind != 'review' AND kind != 'message' AND kind != 'application' AND kind != 'recommendation' ORDER BY created_at DESC":"SELECT * FROM records WHERE status='published' AND kind != 'advice' AND kind != 'review' AND kind != 'message' AND kind != 'application' AND kind != 'recommendation' ORDER BY created_at DESC").all();
  const rows=data.results.map(shape).map((r:any)=>{if(!adminView&&r.kind==='game'){const {official,rawRows,mapping,importId,resolution,...safe}=r;return {...safe,official,players:r.players?.map(({raw,...p}:any)=>p)};}return r;});
  return out(rows,200,adminView?'no-store':'public, max-age=60, stale-while-revalidate=300');
  }catch(e){return out({error:'读取失败：'+(e as Error).message},500);}}
