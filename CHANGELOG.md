@@ -7,6 +7,11 @@
 
 ## 2026-10-23
 
+### 🎬 录像中心三分类 · Video Center Categories
+
+- 录像中心拆分为正赛 / 训练赛 / 战术学习三个子模块；视频新增分类字段，战术手册底部挂「战术学习视频」。
+  *The video center is split into three sub-modules (official / training / tactics-learning); videos now carry a category, and tactics-learning videos also appear at the bottom of the tactics manual.*
+
 ### 🔐 管理员两级权限 · Two-tier Admin Roles
 
 - 新增超级管理员（首个邮箱验证用户）与普通管理员两级权限；普通管理员申请、超管审批通过后获得数据/上传权限，仅超管能审批。
