@@ -1,0 +1,51 @@
+# 📋 变更日志 · Changelog
+
+> 项目的重要里程碑与功能进展（中英双语）。
+> Key milestones and feature progress (bilingual).
+
+---
+
+## 2026-10-23
+
+### ✨ 球员六维分析与 AI 打法建议 · Player Analysis & AI Advice
+
+- **六维能力评分**：得分 / 投射 / 篮板 / 组织 / 防守 / 体能，访客匿名打分（1–5），取平均生成手绘 SVG 六方图（雷达图）。
+  *6-dimension ratings (scoring / shooting / rebounding / playmaking / defense / athleticism), anonymous visitor scoring (1–5), averaged into a hand-drawn SVG radar chart.*
+- **AI 打法建议**：接入 DeepSeek，按「比赛数据 + 六维评分 + 位置」生成四段式建议（角色定位 / 进攻 / 防守 / 训练重点），指纹缓存防重复计费；数据缺失两项以上时提示补充。
+  *DeepSeek-powered play-style advice generated from game stats + ratings + position in a four-section format (role / offense / defense / training focus), cached by fingerprint; blocked with a reminder when 2+ data items are missing.*
+- **球员个人信息**：新增头像、身高、体重、生日、惯用手。
+  *Player profiles now include avatar, height, weight, birthday and handedness.*
+
+### 🌙 深色模式与球队相册 · Dark Mode & Team Album
+
+- **完整深色模式**：浅 / 深主题一键切换，默认跟随系统，选择本地记忆；全部颜色经语义 token 统一管理，球场 SVG 一并换色。
+  *Full dark mode with light/dark toggle, follows the system by default and persists locally; all colors managed through semantic tokens, including the court SVG.*
+- **球队相册**：管理员新建相册、上传图片并归类、发布后公开浏览，支持照片放大。
+  *Team photo album: admins create albums, upload & group photos, publish for public browsing with a lightbox.*
+- **UI 微交互**：卡片悬停浮起、视图入场淡入、主题平滑过渡、按钮按压反馈。
+  *UI micro-interactions: card hover lift, view fade-in, smooth theme transition, button press feedback.*
+
+---
+
+## 2026-10-22
+
+### 🚀 生产部署 · Production Deployment
+
+- 确立 `https://www.jxlq.top` 为唯一生产站（自有 Cloudflare 账号：Workers + D1 + R2），国内直连可用。
+  *Established `https://www.jxlq.top` as the sole production site (own Cloudflare account: Workers + D1 + R2), accessible from mainland China.*
+- 新增 `npm run deploy:cf` 一键部署（构建 + 守卫检查 + wrangler deploy）。
+  *Added one-command deploy `npm run deploy:cf` (build + guard checks + wrangler deploy).*
+
+### ✉️ 邮箱验证码登录 · Email Verification Login
+
+- 支持邮箱验证码登录，首个验证邮箱自动成为管理员，保留原 ChatGPT 管理员身份。
+  *Email verification-code login; the first verified email becomes the admin automatically, while the original ChatGPT admin identity is preserved.*
+
+### 🏀 第一阶段 · Phase 1
+
+- 匿名公开浏览（球队总览 / 11 套二维战术 / 比赛分析 / 球队阵容 / 对手档案 / 录像中心）。
+  *Anonymous public browsing (team overview / 11 two-dimensional tactics / game analysis / roster / opponent profiles / video center).*
+- 管理员后台：Excel / CSV 数据导入与校验、草稿 / 发布、批次撤销。
+  *Admin console: Excel / CSV import & validation, draft / publish, batch undo.*
+- 分片上传录像与图片至 R2，支持 Range 播放、草稿对匿名返回 404。
+  *Chunked video & image upload to R2, Range playback, drafts return 404 to anonymous users.*
