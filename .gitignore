@@ -41,5 +41,9 @@ yarn-error.log*
 /outputs/
 /work/
 
+# 数据恢复（含真实球员数据，严禁提交）
+old-data.json
+restore.sql
+
 # OS metadata
 .DS_Store
